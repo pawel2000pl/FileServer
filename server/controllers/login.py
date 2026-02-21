@@ -35,7 +35,7 @@ def login(username, password):
 
 
 def is_logged_in():
-    return cherrypy.session.get('user_id') is not None
+    return cherrypy.session.get('user_id', None) is not None
 
 
 def require_login(fun):
@@ -46,6 +46,22 @@ def require_login(fun):
             return fun(*args, **kwargs)
         else:
             raise cherrypy.HTTPRedirect('/login')
+
+    return decorator
+
+
+def require_admin(fun):
+
+    @wraps(fun)
+    def decorator(*args, **kwargs):
+        try:
+            user_id = cherrypy.session.get('user_id', None)
+            if user_id is None: raise cherrypy.HTTPRedirect('/login')
+            user = models.User(id=user_id)
+            if not user.is_admin: raise cherrypy.HTTPRedirect('/login')
+        except models.RecordNotFound:
+            raise cherrypy.HTTPRedirect('/login')
+        return fun(*args, **kwargs)
 
     return decorator
 

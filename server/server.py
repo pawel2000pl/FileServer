@@ -58,8 +58,8 @@ class Server:
     def tokenfile(self, *path, **kwargs):
         path = list(path)
         if len(path) < 1: raise cherrypy.HTTPError(400, 'Bad request: path too short')
-        if '..' in path or '.' in path: raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
-        if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
+        if len({'..', '.', '~', '/', '\\', ''}.intersection(path)): raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
+        if any(map(lambda s: len({'/', '\\', '~'}.intersection(s)), path)): raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
         try:
             return controllers.files.render_for_token(path[0], path[1:], '/tokenfile/'+urllib.parse.quote(path[0]), **kwargs)
         except PermissionError:
@@ -68,3 +68,17 @@ class Server:
             raise cherrypy.NotFound
         except models.RecordNotFound:
             raise cherrypy.NotFound
+
+
+    @cherrypy.expose(alias='users')
+    @controllers.login.require_admin
+    def users(self, *args, **kwargs):
+        return controllers.users.render_users(*args, **kwargs)
+
+
+    @cherrypy.expose(alias='user')
+    @controllers.login.require_login
+    def user(self, user_id=None, **kwargs):
+        if isinstance(user_id, str): user_id = int(user_id)
+        return controllers.users.render_user(user_id, **kwargs)
+

@@ -15,6 +15,10 @@ class RecordNotFound(Exception):
     pass
 
 
+class FieldNotFound(Exception):
+    pass
+
+
 class UpdateSchemaResult(Enum):
     ADDITIONAL_FKS = 0
     ADDITIONAL_FIELDS = 1
@@ -144,6 +148,12 @@ class Model:
         return cls.default_values.get(column, None)
 
 
+    def duplicate(self):
+        data = self.__data.copy()
+        data.pop(self.primary_key)
+        return self.__class__(**data)
+
+
     def fill(self, data: Union[dict, tuple]):
         if isinstance(data, dict):
             for col, val in data.items():
@@ -186,7 +196,7 @@ class Model:
     def __getattr__(self, name: str) -> Any:
         if name in self.__annotations__:
             return self.get_value(name)
-        assert False
+        raise FieldNotFound(self.table_name, name)
 
 
     def __setattr__(self, name: str, value: Any):

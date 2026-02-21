@@ -19,7 +19,6 @@ def format_size(size: int) -> str:
     return '-'
 
 
-
 def format_datetime(timestamp):
     date, time = format_date_and_time(timestamp)
     return date + ' ' + time
@@ -51,17 +50,17 @@ def render_menu():
         yield '''
             <h3>Administration</h3>
             <ul>
-                <li><a href="/user">Users</a></li>
+                <li><a href="/users">Users</a></li>
                 <li><a href="/action">Actions</a></li>
                 <li><a href="/statisticts">Statistics</a></li>
             </ul>
         '''
 
     if user is not None:
-        yield '''
+        yield f'''
             <h3>Account</h3>
             <ul>
-                <li><a href='/me'>Edit</a></li>
+                <li><a href='/user/{user.id}'>Edit</a></li>
                 <li><a href='/logout'>Logut</a></li>
             </ul>
         '''
