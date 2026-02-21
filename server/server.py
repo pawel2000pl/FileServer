@@ -1,0 +1,70 @@
+import os
+import models
+import cherrypy
+import configuration
+import controllers
+import urllib.parse
+
+class Server:
+
+    @cherrypy.expose()
+    @controllers.login.require_login
+    def index(self):
+        user_id = cherrypy.session.get('user_id')
+        user = models.User(id=user_id)
+        raise cherrypy.HTTPRedirect('/userfile/'+urllib.parse.quote(user.name))
+
+
+    @cherrypy.expose(alias='styles.css')
+    def styles(self):        
+        cherrypy.response.headers['Content-Type'] = 'text/css'
+        return open(configuration.STATIC_PATH+'styles.css').read()
+
+
+    @cherrypy.expose(alias='.env')
+    def env(self, *args, **kwargs):
+        cherrypy.response.headers['Content-Type'] = 'text/plain'
+        return open(configuration.STATIC_PATH+'env.txt')
+
+
+    @cherrypy.expose()
+    def login(self, *args, **kwargs):
+        return controllers.login.handle(*args, **kwargs)
+
+
+    @cherrypy.expose()
+    def logout(self):
+        return controllers.login.logout()
+
+
+    @cherrypy.expose(alias='userfile')
+    @controllers.login.require_login
+    def userfile(self, *path, **kwargs):
+        path = list(path)
+        if len(path) < 1: raise cherrypy.HTTPError(400, 'Bad request: path too short')
+        if '..' in path or '.' in path: raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
+        if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
+        try:
+            return controllers.files.render_for_user(path[0], path[1:], '/userfile/'+path[0], **kwargs)
+        except PermissionError:
+            raise cherrypy.HTTPError(403, 'Forbidden')
+        except FileNotFoundError:
+            raise cherrypy.NotFound
+        except models.RecordNotFound:
+            raise cherrypy.NotFound
+
+
+    @cherrypy.expose(alias='tokenfile')
+    def tokenfile(self, *path, **kwargs):
+        path = list(path)
+        if len(path) < 1: raise cherrypy.HTTPError(400, 'Bad request: path too short')
+        if '..' in path or '.' in path: raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
+        if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
+        try:
+            return controllers.files.render_for_token(path[0], path[1:], '/tokenfile/'+urllib.parse.quote(path[0]), **kwargs)
+        except PermissionError:
+            raise cherrypy.HTTPError(403)
+        except FileNotFoundError:
+            raise cherrypy.NotFound
+        except models.RecordNotFound:
+            raise cherrypy.NotFound

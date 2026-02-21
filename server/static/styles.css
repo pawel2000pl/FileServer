@@ -1,0 +1,108 @@
+body {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+
+.container {
+    display: grid;
+    grid-template-columns: 20% 1fr;
+    grid-template-rows: 100px 1fr;
+    height: 100vh;
+}
+
+.cell {
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+/* Style na komputerze */
+@media (min-width: 768px) {
+    .container {
+        grid-template-columns: 20% 1fr;
+        grid-template-rows: 100px 1fr;
+    }
+}
+
+/* Style na telefonie */
+@media (max-width: 767px) {
+    .container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+    }
+}
+
+@media (max-width: 767px) {
+    .only-pc {
+        display: none;
+    }
+}
+
+.filters-form-div form div {
+    display: inline-block;
+    margin: 3px;
+}
+
+
+.filters-form-div form input[type="number"] {
+    width: 5em;
+}
+
+.filters-form-div form div span {
+    margin-right: 5px;
+}
+
+
+.content-table,
+.content-table tr,
+.container tr td,
+.container tr th {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+
+.content-table {
+    width: 100%;
+}
+
+
+.content-table th {
+    max-height: 1em;
+    overflow: hidden;
+    text-wrap: nowrap;
+}
+
+
+.file-table .main-column {
+    min-width: 60%;
+    font-weight: normal;
+}
+
+
+.content-table td, .content-table th {
+  padding-left: 5px;
+  padding-right: 5px;
+  text-wrap: nowrap;
+}
+
+
+.content-table a {
+    color: inherit;
+    width: 100%;
+    text-decoration: inherit;  
+    display: inline-block;
+}
+
+
+.file-title {
+    display: block;
+    font-size: 1.3em;
+    font-weight: bolder;
+}
+
+
+.storage-path {
+    display: block;
+    font-size: small;
+}
