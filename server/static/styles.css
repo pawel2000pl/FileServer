@@ -102,7 +102,33 @@ body {
 }
 
 
+.file-header {
+    margin-bottom: 12px;
+}
+
+
 .storage-path {
     display: block;
     font-size: small;
+}
+
+.parent-dir-href {
+    display: block;
+}
+
+
+.mime-span {
+    display: block;
+    margin-bottom: 12px;
+}
+
+
+.download-btn {
+    display: block;
+}
+
+
+.preview {
+    width: 100%;
+    display: block;
 }

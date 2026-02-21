@@ -88,13 +88,19 @@ def render_backups(storage_entry: StorageEntry, url: str) -> Iterator[str]:
     '''    
     try:
         base_url = list(filter(lambda s: not s.startswith(configuration.BACKUP_PREFIX), storage_entry.url_path))
-        if storage_entry.user is not None and len(base_url) != len(storage_entry.url_path):
+        if len(base_url) != len(storage_entry.url_path):
             if len(base_url) == 0:
                 yield f'''
                     <span class="backup-warning"><a href="{escape(url)}">You are watching backups of backup of your main directory. Click here so go to your main directory.</a></span>
                 '''
             else:
-                base_storage = storage_entry.from_user(storage_entry.user, base_url)
+                base_storage: StorageEntry
+                if storage_entry.user is not None:
+                    base_storage = storage_entry.from_user(storage_entry.user, base_url)
+                elif storage_entry.token is not None:
+                    base_storage = storage_entry.from_token(storage_entry.token, base_url)
+                else:
+                    assert False
                 if base_storage.entry.exists():
                     full_url = '/'.join([url] + list(filter(quote, base_url)))
                     yield f'''

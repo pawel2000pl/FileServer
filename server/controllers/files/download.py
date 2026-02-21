@@ -38,7 +38,7 @@ def serve_file(system_path: str, filename: str, download: bool = True) -> Iterat
     cherrypy.response.stream = True
     ranges = cherrypy.request.headers.get('Range', f'bytes=0-{size-1}').replace(' ', '')
     raw_ranges = ranges[len('bytes='):]
-    ranges_list = list(map(lambda x: tuple(map(int, x.split('-', 2))), raw_ranges.split(',')))
+    ranges_list = list(map(lambda x: tuple(map(lambda s: int(s) if s != '' else size-1, x.split('-', 2))), raw_ranges.split(',')))
     ranges_count = len(ranges_list)
     multipart = ranges_count > 1
     cherrypy.response.status = 206 if cherrypy.request.headers.get('Range', False) else 200

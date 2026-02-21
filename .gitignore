@@ -165,3 +165,5 @@ testfile.txt
 test/*
 headers.txt
 *.sqlite3
+
+storage/*

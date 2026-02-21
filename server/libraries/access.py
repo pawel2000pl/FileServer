@@ -26,12 +26,12 @@ class StorageEntry:
         if isinstance(user, int): user = User(id=user)
         base_cap = Capability.query().where('user', user).where('name', url_path[0]).get_one()
         if base_cap is None: raise PermissionError()
-        query = Capability.query()
-        query.where('user', user)
-        query.where_in('storage_path', [os.sep.join([base_cap.storage_path]+url_path[1:i]) for i in range(1, len(url_path))])
-        query.where('write')     
-        write = query.get_one() is not None
         read = True
+        write = base_cap.write or Capability.query() \
+                .where('user', user) \
+                .where_in('storage_path', [os.sep.join([base_cap.storage_path]+url_path[1:i]) for i in range(1, len(url_path))]) \
+                .where('write') \
+                .get_one() is not None
         storage_path = os.sep.join([base_cap.storage_path]+url_path[1:])
         system_path = configuration.STORAGE_PATH + os.sep + storage_path
         entry = FileView(system_path)

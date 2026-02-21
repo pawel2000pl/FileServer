@@ -23,7 +23,7 @@ def render_directory(storage_entry: Optional[StorageEntry], url: str) -> Iterato
             </div>'''
     else:
         yield f'''
-            <div>
+            <div class="file-header">
                 <span class="file-title">{escape(storage_entry.entry.name)}</span>
                 <span class="storage-path">{escape(storage_entry.storage_path)}</span>
             </div>'''
