@@ -18,6 +18,7 @@ BACKUP_PREFIX = 'backup'
 DEFAULT_ADMIN_NAME = 'admin'
 DEFAULT_ADMIN_PASSWORD = 'admin'
 FAIL_LOGIN_DELAY_TIME = 10
+BACKUPS_SCAN_LIMIT = 65536
 
 PASSWORD_FORMAT = 'put-here-some-random-chars-%s-put-here-some-other-random-chars'
 

@@ -41,8 +41,9 @@ def render_menu():
         yield f'''
             <h3>Files</h3>
             <ul>
-                <li><a href="/userfile/{escape(user.name)}">Files</a></li>
-                <li><a href="/shared">Shared</a></li>
+                <li><a href="/userfile/{escape(user.name)}">Browse files</a></li>
+                <li><a href="/shared_by">Shared by me</a></li>
+                <li><a href="/shared_with">Shared with me</a></li>
             </ul>
         '''
     
@@ -51,8 +52,7 @@ def render_menu():
             <h3>Administration</h3>
             <ul>
                 <li><a href="/users">Users</a></li>
-                <li><a href="/action">Actions</a></li>
-                <li><a href="/statisticts">Statistics</a></li>
+                <li><a href="/shared_all">All shares</a></li>
             </ul>
         '''
 

@@ -1,45 +1,52 @@
 import models
 import cherrypy
-from libraries.access import StorageEntry
-from typing import Iterator, Optional, Union
+from html import escape
+from libraries.storage import UrlStorage, StorageEntry
 from controllers.common import render_page
+from typing import Iterator, Optional, Union
 from controllers.files.file import render_file
-from controllers.files.directory import render_directory
+from controllers.files.backups import render_backups
 from controllers.files.download import download_partial
+from controllers.files.directory import render_directory
 
 
-def content_factory(storage_entry: Optional[StorageEntry], url: str):
-    if storage_entry is None:
-        return render_directory(None, url)
+def content_factory(storage_entry: StorageEntry):
     if not storage_entry.read:
         raise PermissionError()
-    if not storage_entry.entry.exists():
-        raise cherrypy.NotFound()
-    if storage_entry.entry.is_dir():
-        return render_directory(storage_entry, url)
-    return render_file(storage_entry, url)
+
+    yield f'''
+        <div class="file-header">
+            <span class="file-title">{escape(storage_entry.get_name())}</span>
+            <span class="storage-path">{escape(storage_entry.get_name())}</span>
+        </div>'''
+    if storage_entry.parent is not None and storage_entry.parent.read:
+        yield f'''<a class="parent-dir-href" href="{escape(storage_entry.parent.generate_url())}">Go to the parent directory</a>'''
+        
+    generator = render_directory(storage_entry) if storage_entry.has_entries() else render_file(storage_entry)
+    for s in generator:
+        yield s
+
+    if storage_entry.can_have_backup():
+        yield '<h3>Backups</h3>'
+        for s in render_backups(storage_entry):
+            yield s
 
 
-def render_for_token(token: str, url_path: list[str], url: str, **kwargs) -> Iterator[Union[str, bytes]]:
-    storage_entry = StorageEntry.from_token(token, url_path)
+
+def render_for_token(url_path: list[str], **kwargs) -> Iterator[Union[str, bytes]]:
+    storage_entry = UrlStorage(url_path)
     if 'download' in kwargs:
-        if not storage_entry.entry.is_file():
+        if not storage_entry.get_file_view().is_file():
             raise cherrypy.HTTPError(400, 'Bad request: only files allowed.')
         return download_partial(storage_entry, kwargs.get('save', False))
-    return render_page(content_factory(storage_entry, url))
+    return render_page(content_factory(storage_entry))
     
 
-def render_for_user(username: str, url_path: list[str], url: str, **kwargs) -> Iterator[Union[str, bytes]]:
-    user_id = cherrypy.session.get('user_id', None)
-    if user_id is None: raise cherrypy.HTTPRedirect('/login')
-    path_user = models.User.query().where('name', username).get_one()
-    if path_user is None: raise cherrypy.NotFound
-    storage_entry = StorageEntry.from_user(user_id, url_path) if len(url_path) else None
+def render_for_user(url_path: list[str], **kwargs) -> Iterator[Union[str, bytes]]:
+    storage_entry = storage_entry = UrlStorage(url_path)
     if 'download' in kwargs:
-        if storage_entry is None:
-            raise cherrypy.HTTPError(400, 'Bad request: Downloading a home directory is not allowed.')
-        if not storage_entry.entry.is_file():
+        if not storage_entry.get_file_view().is_file():
             raise cherrypy.HTTPError(400, 'Bad request: only files allowed.')
         return download_partial(storage_entry, kwargs.get('save', False))
-    return render_page(content_factory(storage_entry, url))
+    return render_page(content_factory(storage_entry))
     

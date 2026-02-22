@@ -3,7 +3,7 @@ import cherrypy
 import mimetypes
 import urllib.parse
 from typing import Iterator
-from libraries.access import StorageEntry
+from libraries.storage import StorageEntry
 from controllers.files.stream_zip import stream_zip
 
 
@@ -75,8 +75,8 @@ def serve_file(system_path: str, filename: str, download: bool = True) -> Iterat
 
 
 def download_partial(storage_entry: StorageEntry, download: bool = False) -> Iterator[bytes]:
-    assert storage_entry.entry.is_file()
-    return serve_file(storage_entry.system_path, storage_entry.entry.name, download)
+    assert storage_entry.get_file_entry().is_file()
+    return serve_file(storage_entry.get_system_path(), storage_entry.get_name(), download)
 
 
 

@@ -45,7 +45,7 @@ class Server:
         if '..' in path or '.' in path: raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
         if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
         try:
-            return controllers.files.render_for_user(path[0], path[1:], '/userfile/'+path[0], **kwargs)
+            return controllers.files.render_for_user(['userfile'] + path, **kwargs)
         except PermissionError:
             raise cherrypy.HTTPError(403, 'Forbidden')
         except FileNotFoundError:
@@ -58,16 +58,14 @@ class Server:
     def tokenfile(self, *path, **kwargs):
         path = list(path)
         if len(path) < 1: raise cherrypy.HTTPError(400, 'Bad request: path too short')
-        if len({'..', '.', '~', '/', '\\', ''}.intersection(path)): raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
-        if any(map(lambda s: len({'/', '\\', '~'}.intersection(s)), path)): raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
+        if '..' in path or '.' in path: raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
+        if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
         try:
-            return controllers.files.render_for_token(path[0], path[1:], '/tokenfile/'+urllib.parse.quote(path[0]), **kwargs)
-        except PermissionError:
+            return controllers.files.render_for_token(['tokenfile'] + path, **kwargs)
+        except (PermissionError, NotImplementedError):
             raise cherrypy.HTTPError(403)
-        except FileNotFoundError:
-            raise cherrypy.NotFound
-        except models.RecordNotFound:
-            raise cherrypy.NotFound
+        except (FileNotFoundError, models.RecordNotFound):
+            raise cherrypy.NotFound()
 
 
     @cherrypy.expose(alias='users')
@@ -81,4 +79,22 @@ class Server:
     def user(self, user_id=None, **kwargs):
         if isinstance(user_id, str): user_id = int(user_id)
         return controllers.users.render_user(user_id, **kwargs)
+
+
+    @cherrypy.expose(alias='shared_with')
+    @controllers.login.require_login
+    def shared_with(self, **kwargs):
+        return controllers.shares.render_shares(True, False, **kwargs)
+
+
+    @cherrypy.expose(alias='shared_by')
+    @controllers.login.require_login
+    def shared_by(self, **kwargs):
+        return controllers.shares.render_shares(False, True, **kwargs)
+
+
+    @cherrypy.expose(alias='shared_all')
+    @controllers.login.require_admin
+    def shared_all(self, **kwargs):
+        return controllers.shares.render_shares(False, False, **kwargs)
 

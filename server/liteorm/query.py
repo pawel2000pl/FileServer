@@ -232,3 +232,5 @@ class Query(Generic[T]):
         return None
 
     
+    def __iter__(self) -> Iterator[T]:
+        return self.get()

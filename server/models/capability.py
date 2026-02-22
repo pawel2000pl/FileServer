@@ -17,7 +17,7 @@ class Capability(MainDatabaseModel):
 
     multi_index = [('user', 'storage_path')]
     unique_index = [('user', 'name'), 'token']
-    not_null = ['read', 'write', 'storage_path']
+    not_null = ['storage_path']
 
 
     def before_persist(self):
