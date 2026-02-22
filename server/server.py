@@ -98,3 +98,8 @@ class Server:
     def shared_all(self, **kwargs):
         return controllers.shares.render_shares(False, False, **kwargs)
 
+
+    @cherrypy.expose(alias='create_share')
+    @controllers.login.require_login
+    def create_share(self, **kwargs):
+        return controllers.shares.render_create_share(**kwargs)

@@ -30,6 +30,14 @@ class StorageEntry:
         return True
 
 
+    def can_be_shared(self) -> bool:
+        try:
+            self.get_storage_path()
+            return True
+        except NotImplementedError:
+            return False
+
+
     def path_is_backup(self) -> bool:
         return self.is_backup() or (self.parent is not None and self.parent.path_is_backup())
 

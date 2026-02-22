@@ -132,3 +132,27 @@ body {
     width: 100%;
     display: block;
 }
+
+.share-panel {
+    float: right;
+    border-width: 1px;
+    border-style: solid;
+    padding: 5px;
+}
+
+.share-panel summary {
+    cursor: pointer;
+    text-align: right;
+}
+
+.file-tool-panel {
+    float: left;
+    display: block;
+}
+
+.share-manual {
+    font-size: small;
+    font-weight: lighter;
+    opacity: 50%;
+}
+

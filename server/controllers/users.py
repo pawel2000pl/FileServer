@@ -95,8 +95,8 @@ def render_user_edit(user_id: Optional[int], **kwargs):
 
 
 def render_users(*args, **kwargs):
-    return render_page(render_users_table())
+    return render_page(render_users_table(), **kwargs)
 
 
 def render_user(user_id: Optional[int], **kwargs):
-    return render_page(render_user_edit(user_id, **kwargs))
+    return render_page(render_user_edit(user_id, **kwargs), **kwargs)

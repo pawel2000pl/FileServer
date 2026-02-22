@@ -15,6 +15,12 @@ class TokenEntry(StorageEntry):
         if not self.get_file_view().exists(): raise FileNotFoundError()
 
 
+    def get_name(self) -> str:
+        if len(self.urlpath) == 2:
+            return 'Unnamed share' if self.capability.name is None else self.capability.name
+        return super().get_name()
+
+
     def goto(self, name: str) -> 'StorageEntry':
         if len({'/', '\\', '~', ':'}.intersection(name)): raise PermissionError()
         if name in {'..', '.', '~'}: raise PermissionError()
@@ -22,7 +28,7 @@ class TokenEntry(StorageEntry):
 
 
     def get_storage_path(self) -> str:
-        return self.capability.storage_path + os.sep + os.sep.join(self.urlpath[2:])
+        return os.sep.join([self.capability.storage_path] + self.urlpath[2:])
 
 
     def is_backup(self) -> bool:

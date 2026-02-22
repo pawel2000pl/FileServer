@@ -24,10 +24,13 @@ def format_datetime(timestamp):
     return date + ' ' + time
 
 
-def render_header():
+def render_header(**kwargs):
+    message = kwargs.get('message', '')
+    is_error = 'msg_error' in kwargs
+    style = 'color: red;' if is_error else ''
     yield f'''
-    <div class="filters-form-div">
-        
+    <div style="{style}" class="filters-form-div">
+        <p>{escape(message)}</p>
     </div>
     '''
 
@@ -66,7 +69,7 @@ def render_menu():
         '''
 
 
-def render_page(content_factory):
+def render_page(content_factory, **kwargs):
     yield '''
     <!DOCTYPE HTML>
     <html>
@@ -83,7 +86,7 @@ def render_page(content_factory):
     yield '<div class="cell">logo</div>'
 
     yield '<div class="cell">'
-    for data in render_header():
+    for data in render_header(**kwargs):
         yield data
     yield '</div>'
     
