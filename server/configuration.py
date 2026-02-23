@@ -30,4 +30,7 @@ if os.path.isfile(OPTIONAL_PASSWORD_SALT):
     half = len(checksum) // 2
     PASSWORD_FORMAT = checksum[:half] + PASSWORD_FORMAT + checksum[half:]
 
+FILE_BUFFER_SIZE = 65536
+TIMEOUT = 30
+DEFAULT_RANGE_SIZE = 2 * 1024 * 1024 * 1024
 

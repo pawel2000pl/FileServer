@@ -1,4 +1,4 @@
-import cherrypy
+import http_utils
 from models import User
 from html import escape
 from typing import Union
@@ -37,7 +37,7 @@ def render_header(**kwargs):
 
 def render_menu():
 
-    user_id = cherrypy.session.get('user_id', None)
+    user_id = http_utils.get_session().get('user_id', None)
     user = User(id=user_id) if user_id else None
 
     if user is not None:

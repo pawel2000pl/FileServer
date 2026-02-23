@@ -2,7 +2,8 @@ import os
 import models
 import liteorm
 from models import MainDatabaseModel
-from typing import Optional, Union, Self, Literal, Collection
+from typing import Optional, Union, Literal, Collection
+
 
 
 class Capability(MainDatabaseModel):

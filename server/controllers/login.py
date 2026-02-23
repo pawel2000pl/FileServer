@@ -1,5 +1,5 @@
-import cherrypy
 import models
+import http_utils
 import installation
 from time import time, sleep
 from html import escape
@@ -26,16 +26,16 @@ def login(username, password):
     user = models.User.query().where('name', username).get_one()
     if user is None or not user.check_password_hash(password): 
         sleep(FAIL_LOGIN_DELAY_TIME - (time() - t0))
-        raise cherrypy.HTTPRedirect('/login?fail=true')
-    cherrypy.session['user_id'] = user.id
+        http_utils.redirect('/login?fail=true')
+    http_utils.get_session()['user_id'] = user.id
     if user.is_admin:
         if installation.requires_installation_of_admin_capabilities(user):
             installation.install_admin_capabilities()
-    raise cherrypy.HTTPRedirect('/')
+    http_utils.redirect('/')
 
 
 def is_logged_in():
-    return cherrypy.session.get('user_id', None) is not None
+    return http_utils.get_session().get('user_id', None) is not None
 
 
 def require_login(fun):
@@ -45,7 +45,7 @@ def require_login(fun):
         if is_logged_in():
             return fun(*args, **kwargs)
         else:
-            raise cherrypy.HTTPRedirect('/login')
+            http_utils.redirect('/login')
 
     return decorator
 
@@ -55,25 +55,25 @@ def require_admin(fun):
     @wraps(fun)
     def decorator(*args, **kwargs):
         try:
-            user_id = cherrypy.session.get('user_id', None)
-            if user_id is None: raise cherrypy.HTTPRedirect('/login')
+            user_id = http_utils.get_session().get('user_id', None)
+            if user_id is None: http_utils.redirect('/login')
             user = models.User(id=user_id)
-            if not user.is_admin: raise cherrypy.HTTPRedirect('/login')
+            if not user.is_admin: http_utils.redirect('/login')
         except models.RecordNotFound:
-            raise cherrypy.HTTPRedirect('/login')
+            http_utils.redirect('/login')
         return fun(*args, **kwargs)
 
     return decorator
 
 
 def logout():
-    cherrypy.session.clear()
-    raise cherrypy.HTTPRedirect('/login')
+    http_utils.get_session().clear()
+    http_utils.redirect('/login')
 
 
 def handle(*args, **kwargs):
     if is_logged_in():
-        raise cherrypy.HTTPRedirect('/')
+        http_utils.redirect('/')
     if 'username' and 'password' in kwargs:
         return login(kwargs['username'], kwargs['password'])
     return render_loginpage('fail' in kwargs)

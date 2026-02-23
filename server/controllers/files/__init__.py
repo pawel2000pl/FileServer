@@ -1,5 +1,5 @@
 import models
-import cherrypy
+import http_utils
 from html import escape
 from libraries.storage import UrlStorage, StorageEntry
 from controllers.common import render_page
@@ -45,7 +45,7 @@ def render_for_token(url_path: list[str], **kwargs) -> Iterator[Union[str, bytes
     storage_entry = UrlStorage(url_path)
     if 'download' in kwargs:
         if not storage_entry.get_file_view().is_file():
-            raise cherrypy.HTTPError(400, 'Bad request: only files allowed.')
+            http_utils.error(400, 'Bad request: only files allowed.')
         return download_partial(storage_entry, kwargs.get('save', False))
     return render_page(content_factory(storage_entry), **kwargs)
     
@@ -54,7 +54,7 @@ def render_for_user(url_path: list[str], **kwargs) -> Iterator[Union[str, bytes]
     storage_entry = storage_entry = UrlStorage(url_path)
     if 'download' in kwargs:
         if not storage_entry.get_file_view().is_file():
-            raise cherrypy.HTTPError(400, 'Bad request: only files allowed.')
+            http_utils.error(400, 'Bad request: only files allowed.')
         return download_partial(storage_entry, kwargs.get('save', False))
     return render_page(content_factory(storage_entry, **kwargs), **kwargs)
     

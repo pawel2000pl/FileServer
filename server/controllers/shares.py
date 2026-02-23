@@ -1,7 +1,7 @@
 import os
 import base64
 import models
-import cherrypy
+import http_utils
 from html import escape
 from typing import Optional
 from urllib.parse import quote
@@ -10,7 +10,7 @@ from libraries.storage import StorageEntry
 
 
 def render_shared_table(only_shared_with_me: bool, only_shared_by_me: bool, only_id: Optional[int] = None):
-    user_id = cherrypy.session.get('user_id')
+    user_id = http_utils.get_session().get('user_id')
     if user_id is None: raise PermissionError()
     user = models.User(id=user_id)
     if not only_shared_with_me and not only_shared_by_me and not user.is_admin: raise PermissionError()
@@ -77,7 +77,7 @@ def render_shared_table(only_shared_with_me: bool, only_shared_by_me: bool, only
 
 
 def render_create_share_form(storage_entry: StorageEntry):
-    user_id = cherrypy.session.get('user_id', None)
+    user_id = http_utils.get_session().get('user_id', None)
     if not storage_entry.can_be_shared() or user_id is None:
         return
     user = models.User(id=user_id)
@@ -111,7 +111,7 @@ def render_create_share_form(storage_entry: StorageEntry):
 
 
 def create_share(**kwargs):
-    user_id = cherrypy.session.get('user_id', None)
+    user_id = http_utils.get_session().get('user_id', None)
     if user_id is None:
         raise PermissionError()
     try:
@@ -156,7 +156,7 @@ def create_share(**kwargs):
         yield return_a
 
     except (ValueError, KeyError):
-        raise cherrypy.HTTPError(400, 'Bad request')
+        http_utils.error(400, 'Bad request')
 
 
 def render_create_share(**kwargs):

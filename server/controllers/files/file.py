@@ -1,4 +1,3 @@
-import cherrypy
 import mimetypes
 import configuration
 from html import escape

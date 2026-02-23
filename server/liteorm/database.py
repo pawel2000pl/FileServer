@@ -14,7 +14,8 @@ class Database:
             thread.__dict__['db_connections'] = dict()
         if cls.database_filename not in thread.db_connections:
             thread.db_connections[cls.database_filename] = sqlite3.connect(cls.database_filename)
-            thread.db_connections[cls.database_filename].autocommit = cls.autocommit
+            # autocommits are manual
+            # thread.db_connections[cls.database_filename].autocommit = cls.autocommit
         return thread.db_connections[cls.database_filename]
 
 

@@ -1,5 +1,5 @@
 import models
-import cherrypy
+import http_utils
 from html import escape
 from typing import Optional
 from controllers.common import render_page
@@ -40,7 +40,7 @@ def render_users_table():
 
 def render_user_edit(user_id: Optional[int], **kwargs):
     user = models.User(name='new_user') if user_id is None else models.User(id=user_id)
-    logged_id = cherrypy.session.get('user_id', None)
+    logged_id = http_utils.get_session().get('user_id', None)
     if logged_id is None: raise PermissionError()
     logged_user = models.User(id=logged_id)
     if not logged_user.is_admin and logged_user.id != user.id:

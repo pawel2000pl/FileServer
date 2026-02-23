@@ -3,9 +3,15 @@ import sqlite3
 import logging
 from enum import Enum
 from time import time
-from typing import Optional, Union, Any, Iterator, Type, Self, Collection
 from liteorm.query import Query
 from liteorm.database import Database
+from typing import Optional, Union, Any, Iterator, Type, Collection
+
+try:
+    from typing import Self
+except:
+    from typing import TypeVar
+    Self = 'Model' # type: ignore
 
 
 ALL_REGISTRED_MODELS = []
@@ -335,6 +341,8 @@ class Model:
                     f'INSERT INTO {self.table_name} ({insert_columns_str}) VALUES ({insert_columns_params_str})',
                     [self.__data.get(col, None) for col in insert_columns]
                 )
+            if self.database.autocommit:
+                self.database.commit()
             self.set_pk_val(cursor.lastrowid)
             self.invalidate_cache()
             self.reload(cursor)
@@ -347,6 +355,8 @@ class Model:
                 f'UPDATE {self.table_name} SET {update_list_str} WHERE {self.primary_key} = ?',
                 [self.__data.get(col, None) for col in columns_list_no_pk] + [self.get_pk_val()]
             )
+            if self.database.autocommit:
+                self.database.commit()
             self.invalidate_cache()
             self.after_update()
         self.__modified = False

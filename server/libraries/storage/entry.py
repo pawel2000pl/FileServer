@@ -31,6 +31,10 @@ class StorageEntry:
 
 
     def can_be_shared(self) -> bool:
+        return self.is_real_file()
+
+    
+    def is_real_file(self) -> bool:
         try:
             self.get_storage_path()
             return True
@@ -117,6 +121,11 @@ class StorageEntry:
                     if entry.name == names_path[0]:
                         continue
                     if not os.path.exists(entry.__fspath__() + os.sep + os.sep.join(names_path)):
+                        continue
+                elif self.is_real_file():
+                    if entry.is_dir() != self.get_file_view().is_dir():
+                        continue
+                    if entry.is_file() != self.get_file_view().is_file():
                         continue
                 if not entry.name.startswith(configuration.BACKUP_PREFIX):
                     continue

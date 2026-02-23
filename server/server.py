@@ -1,5 +1,6 @@
 import os
 import models
+import http_utils
 import cherrypy
 import configuration
 import controllers
@@ -10,9 +11,9 @@ class Server:
     @cherrypy.expose()
     @controllers.login.require_login
     def index(self):
-        user_id = cherrypy.session.get('user_id')
+        user_id = http_utils.get_session().get('user_id')
         user = models.User(id=user_id)
-        raise cherrypy.HTTPRedirect('/userfile/'+urllib.parse.quote(user.name))
+        http_utils.redirect('/userfile/'+urllib.parse.quote(user.name))
 
 
     @cherrypy.expose(alias='styles.css')

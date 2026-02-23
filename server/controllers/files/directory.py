@@ -1,6 +1,5 @@
 import os
 import models
-import cherrypy
 import configuration
 from html import escape
 from urllib.parse import quote

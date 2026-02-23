@@ -1,5 +1,12 @@
 import liteorm
-from typing import Generic, TypeVar, Type, Any, Iterator, Optional, Union, Collection, Self, Literal
+from typing import Generic, TypeVar, Type, Any, Iterator, Optional, Union, Collection, Literal
+
+try:
+    from typing import Self
+except:
+    from typing import TypeVar
+    Self = 'Query[T]' # type: ignore
+
 
 T = TypeVar('T', bound='liteorm.Model')
 
@@ -215,6 +222,8 @@ class Query(Generic[T]):
         sql = self.generate_sql([self.__model_class.primary_key])
         cursor = self.__model_class.database.get_cursor()
         cursor.execute(f'DELETE FROM {self.__model_class.table_name} WHERE {self.__model_class.primary_key} IN ({sql})', self.__params)
+        if self.__model_class.database.autocommit:
+            self.__model_class.database.commit()
         self.__model_class.invalidate_model_cache()
         return cursor.rowcount
 
