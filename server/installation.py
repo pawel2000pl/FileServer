@@ -1,10 +1,23 @@
 import os
+import time
+import flask
 import models
+import server
 import logging
 
-from configuration import DEFAULT_ADMIN_NAME, DEFAULT_ADMIN_PASSWORD, STORAGE_PATH
+from configuration import DEFAULT_ADMIN_NAME, DEFAULT_ADMIN_PASSWORD, STORAGE_PATH, SESSION_EXPIRES, SESSION_DIR
 
 logger = logging.getLogger(__name__)
+
+
+def delete_expired_sessions():
+    current_time = time.time()
+    cutoff_time = current_time - SESSION_EXPIRES
+    for entry in os.scandir(SESSION_DIR):
+        if entry.stat().st_atime < cutoff_time:
+            filename = entry.__fspath__()
+            logger.info('Removed session file: ' + filename)
+            os.remove(filename)
 
 
 def requires_installation_of_admin_capabilities(user: models.User) -> bool:

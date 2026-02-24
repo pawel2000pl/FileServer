@@ -1,106 +1,141 @@
 import os
+import flask
 import models
-import http_utils
-import cherrypy
-import configuration
+import datetime
 import controllers
 import urllib.parse
+import configuration
+import flask_session
+import response_stream
 
-class Server:
-
-    @cherrypy.expose()
-    @controllers.login.require_login
-    def index(self):
-        user_id = http_utils.get_session().get('user_id')
-        user = models.User(id=user_id)
-        http_utils.redirect('/userfile/'+urllib.parse.quote(user.name))
-
-
-    @cherrypy.expose(alias='styles.css')
-    def styles(self):        
-        cherrypy.response.headers['Content-Type'] = 'text/css'
-        return open(configuration.STATIC_PATH+'styles.css').read()
+application = flask.Flask(__name__)
+application.config["SESSION_PERMANENT"] = False     
+application.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(seconds=configuration.SESSION_EXPIRES)
+application.config["SESSION_TYPE"] = "filesystem"    
+application.config["SESSION_FILE_DIR"] = configuration.SESSION_DIR
 
 
-    @cherrypy.expose(alias='.env')
-    def env(self, *args, **kwargs):
-        cherrypy.response.headers['Content-Type'] = 'text/plain'
-        return open(configuration.STATIC_PATH+'env.txt')
+# Initialize Flask-Session
+flask_session.Session(application)
 
 
-    @cherrypy.expose()
-    def login(self, *args, **kwargs):
-        return controllers.login.handle(*args, **kwargs)
+@application.route('/')
+@response_stream.http_response
+@controllers.login.require_login
+def index():
+    user_id = flask.session.get('user_id')
+    user = models.User(id=user_id)
+    raise response_stream.HTTPRedirect('/userfile/'+urllib.parse.quote(user.name))
 
 
-    @cherrypy.expose()
-    def logout(self):
-        return controllers.login.logout()
+@application.route('/favicon.ico')
+@response_stream.http_response
+def favicon_ico():        
+    yield response_stream.ResponseHeader('Content-Type', 'image/svg+xml')
+    yield open(configuration.STATIC_PATH+'favicon.svg', 'rb').read()
 
 
-    @cherrypy.expose(alias='userfile')
-    @controllers.login.require_login
-    def userfile(self, *path, **kwargs):
-        path = list(path)
-        if len(path) < 1: raise cherrypy.HTTPError(400, 'Bad request: path too short')
-        if '..' in path or '.' in path: raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
-        if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
-        try:
-            return controllers.files.render_for_user(['userfile'] + path, **kwargs)
-        except PermissionError:
-            raise cherrypy.HTTPError(403, 'Forbidden')
-        except FileNotFoundError:
-            raise cherrypy.NotFound
-        except models.RecordNotFound:
-            raise cherrypy.NotFound
+@application.route('/favicon.svg')
+@response_stream.http_response
+def favicon_svg():        
+    yield response_stream.ResponseHeader('Content-Type', 'image/svg+xml')
+    yield open(configuration.STATIC_PATH+'favicon.svg', 'rb').read()
 
 
-    @cherrypy.expose(alias='tokenfile')
-    def tokenfile(self, *path, **kwargs):
-        path = list(path)
-        if len(path) < 1: raise cherrypy.HTTPError(400, 'Bad request: path too short')
-        if '..' in path or '.' in path: raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
-        if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise cherrypy.HTTPError(400, 'Bad request: invalid path elements')
-        try:
-            return controllers.files.render_for_token(['tokenfile'] + path, **kwargs)
-        except (PermissionError, NotImplementedError):
-            raise cherrypy.HTTPError(403)
-        except (FileNotFoundError, models.RecordNotFound):
-            raise cherrypy.NotFound()
+@application.route('/styles.css')
+@response_stream.http_response
+def styles():        
+    yield response_stream.ResponseHeader('Content-Type', 'text/css')
+    yield open(configuration.STATIC_PATH+'styles.css', 'rb').read()
 
 
-    @cherrypy.expose(alias='users')
-    @controllers.login.require_admin
-    def users(self, *args, **kwargs):
-        return controllers.users.render_users(*args, **kwargs)
+@application.route('/.env')
+@response_stream.http_response
+def env():
+    yield response_stream.ResponseHeader('Content-Type', 'text/plain')
+    yield open(configuration.STATIC_PATH+'env.txt', 'rb').read()
 
 
-    @cherrypy.expose(alias='user')
-    @controllers.login.require_login
-    def user(self, user_id=None, **kwargs):
-        if isinstance(user_id, str): user_id = int(user_id)
-        return controllers.users.render_user(user_id, **kwargs)
+@application.route('/login', methods=['GET', 'POST'])
+@response_stream.http_response
+def login():
+    return controllers.login.handle()
 
 
-    @cherrypy.expose(alias='shared_with')
-    @controllers.login.require_login
-    def shared_with(self, **kwargs):
-        return controllers.shares.render_shares(True, False, **kwargs)
+@application.route('/logout')
+@response_stream.http_response
+def logout():
+    return controllers.login.logout()
 
 
-    @cherrypy.expose(alias='shared_by')
-    @controllers.login.require_login
-    def shared_by(self, **kwargs):
-        return controllers.shares.render_shares(False, True, **kwargs)
+@application.route('/userfile/<path:path>', methods=['GET', 'POST'])
+@response_stream.http_response
+@controllers.login.require_login
+def userfile(path):
+    path = list(filter(lambda s: len(s), path.split('/')))
+    if len(path) < 1: raise response_stream.HTTPError(400, 'Bad request: path too short')
+    if '..' in path or '.' in path: raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
+    if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
+    return controllers.files.render_for_user(['userfile'] + path)
 
 
-    @cherrypy.expose(alias='shared_all')
-    @controllers.login.require_admin
-    def shared_all(self, **kwargs):
-        return controllers.shares.render_shares(False, False, **kwargs)
+
+@application.route('/tokenfile/<path:path>', methods=['GET', 'POST'])
+@response_stream.http_response
+def tokenfile(path):
+    path = list(filter(lambda s: len(s), path.split('/')))
+    if len(path) < 1: raise response_stream.HTTPError(400, 'Bad request: path too short')
+    if '..' in path or '.' in path: raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
+    if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
+    return controllers.files.render_for_token(['tokenfile'] + path)
 
 
-    @cherrypy.expose(alias='create_share')
-    @controllers.login.require_login
-    def create_share(self, **kwargs):
-        return controllers.shares.render_create_share(**kwargs)
+
+@application.route('/users', methods=['GET', 'POST'])
+@response_stream.http_response
+@controllers.login.require_admin
+def users():
+    return controllers.users.render_users()
+
+
+@application.route('/user/<int:user_id>', methods=['GET', 'POST'])
+@response_stream.http_response
+@controllers.login.require_login
+def user(user_id=None):
+    if isinstance(user_id, str): user_id = int(user_id)
+    return controllers.users.render_user(user_id)
+
+
+@application.route('/user', methods=['GET', 'POST'])
+@response_stream.http_response
+@controllers.login.require_login
+def new_user():
+    return controllers.users.render_user(None)
+
+
+@application.route('/shared_with', methods=['GET', 'POST'])
+@response_stream.http_response
+@controllers.login.require_login
+def shared_with():
+    return controllers.shares.render_shares(True, False)
+
+
+@application.route('/shared_by', methods=['GET', 'POST'])
+@response_stream.http_response
+@controllers.login.require_login
+def shared_by():
+    return controllers.shares.render_shares(False, True)
+
+
+@application.route('/shared_all', methods=['GET', 'POST'])
+@response_stream.http_response
+@controllers.login.require_admin
+def shared_all():
+    return controllers.shares.render_shares(False, False)
+
+
+@application.route('/create_share', methods=['GET', 'POST'])
+@response_stream.http_response
+@controllers.login.require_login
+def create_share():
+    return controllers.shares.render_create_share()

@@ -1,16 +1,17 @@
 import os
+import flask
 import base64
 import models
-import http_utils
+import response_stream
 from html import escape
-from typing import Optional
 from urllib.parse import quote
+from typing import Optional, Iterator
 from controllers.common import render_page
 from libraries.storage import StorageEntry
 
 
-def render_shared_table(only_shared_with_me: bool, only_shared_by_me: bool, only_id: Optional[int] = None):
-    user_id = http_utils.get_session().get('user_id')
+def render_shared_table(only_shared_with_me: bool, only_shared_by_me: bool, only_id: Optional[int] = None) -> Iterator[str]:
+    user_id = flask.session.get('user_id')
     if user_id is None: raise PermissionError()
     user = models.User(id=user_id)
     if not only_shared_with_me and not only_shared_by_me and not user.is_admin: raise PermissionError()
@@ -76,8 +77,8 @@ def render_shared_table(only_shared_with_me: bool, only_shared_by_me: bool, only
     '''
 
 
-def render_create_share_form(storage_entry: StorageEntry):
-    user_id = http_utils.get_session().get('user_id', None)
+def render_create_share_for(storage_entry: StorageEntry) -> Iterator[str]:
+    user_id = flask.session.get('user_id', None)
     if not storage_entry.can_be_shared() or user_id is None:
         return
     user = models.User(id=user_id)
@@ -110,22 +111,22 @@ def render_create_share_form(storage_entry: StorageEntry):
     '''
 
 
-def create_share(**kwargs):
-    user_id = http_utils.get_session().get('user_id', None)
+def create_share() -> Iterator[str]:
+    user_id = flask.session.get('user_id', None)
     if user_id is None:
         raise PermissionError()
     try:
         user = models.User(id=user_id)
-        referer = kwargs['referer']
-        rest_of_path = kwargs['rest_of_path']
+        referer = flask.request.form['referer']
+        rest_of_path = flask.request.form['rest_of_path']
         for part in rest_of_path.split(os.sep):
             if len({'/', '\\', '~', ':'}.intersection(part)): raise PermissionError()
             if part in {'..', '.', '~'}: raise PermissionError()
-        capability_id = int(kwargs['capability_id'])
-        username = kwargs.get('username', '')
-        share_with_writing = kwargs.get('share_with_writing', False)
-        share_user = kwargs.get('share_user', False)
-        share_token = kwargs.get('share_token', False)
+        capability_id = int(flask.request.form['capability_id'])
+        username = flask.request.form.get('username', '')
+        share_with_writing = bool(flask.request.form.get('share_with_writing', False))
+        share_user = flask.request.form.get('share_user', False)
+        share_token = flask.request.form.get('share_token', False)
         if share_token == share_user: raise ValueError()
 
         return_a = f'<a href="{escape(referer)}">Back</a>'
@@ -141,11 +142,12 @@ def create_share(**kwargs):
             return
         
         new_capability = models.Capability()
-        new_capability.storage_path = capability.storage_path + os.sep + rest_of_path
+        new_capability.storage_path = os.sep.join([capability.storage_path, rest_of_path])
         new_capability.depends_on = capability
         new_capability.write = share_with_writing
-        new_capability.name = capability.name
+        new_capability.name = new_capability.storage_path.split(os.sep)[-1]
         if share_user:
+            assert user2 is not None
             new_capability.user = user2
         if share_token:
             new_capability.token = base64.b32encode(open('/dev/urandom', 'rb').read(32)).decode('utf-8') 
@@ -156,13 +158,13 @@ def create_share(**kwargs):
         yield return_a
 
     except (ValueError, KeyError):
-        http_utils.error(400, 'Bad request')
+        raise response_stream.HTTPError(400, 'Bad request')
 
 
-def render_create_share(**kwargs):
-    return render_page(create_share(**kwargs), **kwargs)
+def render_create_share() -> Iterator[str]:
+    return render_page(create_share())
 
 
-def render_shares(only_shared_with_me: bool, only_shared_by_me: bool, **kwargs):
-    return render_page(render_shared_table(only_shared_with_me, only_shared_by_me), **kwargs)
+def render_shares(only_shared_with_me: bool, only_shared_by_me: bool) -> Iterator[str]:
+    return render_page(render_shared_table(only_shared_with_me, only_shared_by_me))
 

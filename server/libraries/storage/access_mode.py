@@ -1,5 +1,5 @@
+import flask
 import models
-import http_utils
 import libraries.storage
 from libraries.storage import StorageEntry
 from typing import Literal
@@ -26,7 +26,7 @@ class AccessModeEntry(StorageEntry):
 
 
     def __goto_user(self, username: str) -> 'StorageEntry':
-        logged_user_id = http_utils.get_session().get('user_id')
+        logged_user_id = flask.session.get('user_id')
         if logged_user_id is None: raise PermissionError()
         logged_user = models.User(id=logged_user_id)
         user = models.User.query().where('name', username).get_one()

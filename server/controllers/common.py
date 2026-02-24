@@ -1,4 +1,4 @@
-import http_utils
+import flask
 from models import User
 from html import escape
 from typing import Union
@@ -24,9 +24,9 @@ def format_datetime(timestamp):
     return date + ' ' + time
 
 
-def render_header(**kwargs):
-    message = kwargs.get('message', '')
-    is_error = 'msg_error' in kwargs
+def render_header():
+    message = flask.request.args.get('message', '')
+    is_error = 'msg_error' in flask.request.args
     style = 'color: red;' if is_error else ''
     yield f'''
     <div style="{style}" class="filters-form-div">
@@ -37,7 +37,7 @@ def render_header(**kwargs):
 
 def render_menu():
 
-    user_id = http_utils.get_session().get('user_id', None)
+    user_id = flask.session.get('user_id', None)
     user = User(id=user_id) if user_id else None
 
     if user is not None:
@@ -59,7 +59,14 @@ def render_menu():
             </ul>
         '''
 
-    if user is not None:
+    if user is None:
+        yield f'''
+            <h3>Account</h3>
+            <ul>
+                <li><a href='/login'>Login</a></li>
+            </ul>
+        '''
+    else:
         yield f'''
             <h3>Account</h3>
             <ul>
@@ -69,7 +76,7 @@ def render_menu():
         '''
 
 
-def render_page(content_factory, **kwargs):
+def render_page(content_factory):
     yield '''
     <!DOCTYPE HTML>
     <html>
@@ -83,10 +90,10 @@ def render_page(content_factory, **kwargs):
 
     yield '<div class="container">'
 
-    yield '<div class="cell">logo</div>'
+    yield '<div class="cell logo-cell"><img src="/favicon.svg" alt="logo"/></div>'
 
     yield '<div class="cell">'
-    for data in render_header(**kwargs):
+    for data in render_header():
         yield data
     yield '</div>'
     

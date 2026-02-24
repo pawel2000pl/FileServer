@@ -1,17 +1,19 @@
+import flask
 import models
-import http_utils
 from html import escape
-from libraries.storage import UrlStorage, StorageEntry
 from controllers.common import render_page
 from typing import Iterator, Optional, Union
+from response_stream import ResponseStream, HTTPError
+from libraries.storage import UrlStorage, StorageEntry
+
 from controllers.files.file import render_file
 from controllers.files.backups import render_backups
+from controllers.shares import render_create_share_for
 from controllers.files.download import download_partial
 from controllers.files.directory import render_directory
-from controllers.shares import render_create_share_form
 
 
-def content_factory(storage_entry: StorageEntry, **kwargs):
+def content_factory(storage_entry: StorageEntry) -> Iterator[str]:
     if not storage_entry.read:
         raise PermissionError()
 
@@ -25,7 +27,7 @@ def content_factory(storage_entry: StorageEntry, **kwargs):
         yield f'''<a class="parent-dir-href" href="{escape(storage_entry.parent.generate_url())}">Go to the parent directory</a>'''
     yield '</div>'    
     
-    for s in render_create_share_form(storage_entry):
+    for s in render_create_share_for(storage_entry):
         yield s
 
     yield '<br>'
@@ -41,20 +43,26 @@ def content_factory(storage_entry: StorageEntry, **kwargs):
 
 
 
-def render_for_token(url_path: list[str], **kwargs) -> Iterator[Union[str, bytes]]:
+def render_for_token(url_path: list[str]) -> ResponseStream:
     storage_entry = UrlStorage(url_path)
-    if 'download' in kwargs:
+    if 'download' in flask.request.args:
         if not storage_entry.get_file_view().is_file():
-            http_utils.error(400, 'Bad request: only files allowed.')
-        return download_partial(storage_entry, kwargs.get('save', False))
-    return render_page(content_factory(storage_entry), **kwargs)
+            raise HTTPError(400, 'Bad request: only files allowed.')
+        return download_partial(storage_entry, bool(flask.request.args.get('save', False)))
+    return render_page(content_factory(storage_entry))
     
+import flask
 
-def render_for_user(url_path: list[str], **kwargs) -> Iterator[Union[str, bytes]]:
+def my_function():
+    yield 'text 1'
+    yield repr(flask.session['user_id'])
+    yield 'text 2'
+
+def render_for_user(url_path: list[str]) -> ResponseStream:
     storage_entry = storage_entry = UrlStorage(url_path)
-    if 'download' in kwargs:
+    if 'download' in flask.request.args:
         if not storage_entry.get_file_view().is_file():
-            http_utils.error(400, 'Bad request: only files allowed.')
-        return download_partial(storage_entry, kwargs.get('save', False))
-    return render_page(content_factory(storage_entry, **kwargs), **kwargs)
+            raise HTTPError(400, 'Bad request: only files allowed.')
+        return download_partial(storage_entry, bool(flask.request.args.get('save', False)))
+    return render_page(content_factory(storage_entry))
     

@@ -1,8 +1,9 @@
+import flask
 import models
-import http_utils
 from html import escape
 from typing import Optional
 from controllers.common import render_page
+
 
 def render_users_table():
     yield '''
@@ -38,9 +39,9 @@ def render_users_table():
 
 
 
-def render_user_edit(user_id: Optional[int], **kwargs):
+def render_user_edit(user_id: Optional[int]):
     user = models.User(name='new_user') if user_id is None else models.User(id=user_id)
-    logged_id = http_utils.get_session().get('user_id', None)
+    logged_id = flask.session.get('user_id', None)
     if logged_id is None: raise PermissionError()
     logged_user = models.User(id=logged_id)
     if not logged_user.is_admin and logged_user.id != user.id:
@@ -51,25 +52,29 @@ def render_user_edit(user_id: Optional[int], **kwargs):
 
     error_msg = ''
     try:
-        if 'save-changes' in kwargs:
-            if 'name' in kwargs:
-                user.name = kwargs['name']
-            if 'password' in kwargs and kwargs['password'] != '':
-                user.set_password_hash(kwargs['password'])
-            if 'is_admin' in kwargs and logged_user.is_admin:
-                user.is_admin = True
-            else:
-                user.is_admin = False
+        if 'save-changes' in flask.request.form:
+            if 'name' in flask.request.form:
+                user.name = flask.request.form['name']
+            if 'password' in flask.request.form and flask.request.form['password'] != '':
+                user.set_password_hash(flask.request.form['password'])
+            if logged_user.is_admin:
+                if 'is_admin' in flask.request.form:
+                    user.is_admin = True
+                else:
+                    user.is_admin = False
             user.persist()
+    except ValueError as err:
+        error_msg = 'Cannot save changes. Invalid password (8-72 characters).'
     except Exception as err:
         error_msg = 'Cannot save changes. Duplicate of user\'s name.'
-        raise err
+
 
     only_admin = '' if logged_user.is_admin else 'disabled="disabled"'
-    user_path_id = '' if user_id is None else user.id
+    user_path_id = '' if user_id is None else '/'+str(user.id)
+    checked_admin = 'checked="checked"' if user.is_admin else ''
 
     yield f'''
-    <form method="POST" action="/user/{user_path_id}">
+    <form method="POST" action="/user{user_path_id}">
         <table>
             <tr>
                 <td>ID</td>
@@ -85,7 +90,7 @@ def render_user_edit(user_id: Optional[int], **kwargs):
             </tr>
             <tr>
                 <td><label for="is-admin-chkbsk">Is admin</label></td>
-                <td><input id="is-admin-chkbsk" type="checkbox" {only_admin} name="is_admin"/></td>
+                <td><input id="is-admin-chkbsk" type="checkbox" {only_admin} {checked_admin} name="is_admin"/></td>
             </tr>
         </table>
         <p><input type="submit" name="save-changes" value="Save"/></p>
@@ -94,9 +99,9 @@ def render_user_edit(user_id: Optional[int], **kwargs):
     '''
 
 
-def render_users(*args, **kwargs):
-    return render_page(render_users_table(), **kwargs)
+def render_users():
+    return render_page(render_users_table())
 
 
-def render_user(user_id: Optional[int], **kwargs):
-    return render_page(render_user_edit(user_id, **kwargs), **kwargs)
+def render_user(user_id: Optional[int]):
+    return render_page(render_user_edit(user_id))

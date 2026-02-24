@@ -1,17 +1,31 @@
+import flask
 import models
-import http_utils
 import installation
-from time import time, sleep
+import response_stream
 from html import escape
 from functools import wraps
-from configuration import FAIL_LOGIN_DELAY_TIME
+from time import time, sleep
+from typing import Iterator, Optional
+from controllers.common import render_page
+from configuration import FAIL_LOGIN_DELAY_TIME, SESSION_CLEANUP_INTERVAL
 
 
-def render_loginpage(fail):
+LAST_CLEANUP: Optional[float] = None
+
+
+def check_cleanup():
+    global LAST_CLEANUP
+    now = time()
+    if LAST_CLEANUP is None or now - LAST_CLEANUP > SESSION_CLEANUP_INTERVAL:
+        installation.delete_expired_sessions()
+        LAST_CLEANUP = now
+
+
+def render_loginpage(fail) -> Iterator[str]:
     if fail:
         yield "<div>Incorrect login data<div>"
     yield """
-        <div>
+        <div class="login-panel">
             <form action="/login" method="POST">
                 <input type="text" name="username"/>
                 <input type="password" name="password"/>
@@ -21,21 +35,22 @@ def render_loginpage(fail):
     """
 
 
-def login(username, password):
+def login(username, password) -> Iterator[str]:
     t0 = time()
     user = models.User.query().where('name', username).get_one()
     if user is None or not user.check_password_hash(password): 
         sleep(FAIL_LOGIN_DELAY_TIME - (time() - t0))
-        http_utils.redirect('/login?fail=true')
-    http_utils.get_session()['user_id'] = user.id
+        raise response_stream.HTTPRedirect('/login?fail=true')
+    flask.session['user_id'] = user.id
     if user.is_admin:
         if installation.requires_installation_of_admin_capabilities(user):
             installation.install_admin_capabilities()
-    http_utils.redirect('/')
+    raise response_stream.HTTPRedirect('/')
 
 
-def is_logged_in():
-    return http_utils.get_session().get('user_id', None) is not None
+def is_logged_in() -> bool:
+    check_cleanup()
+    return flask.session.get('user_id', None) is not None
 
 
 def require_login(fun):
@@ -45,7 +60,7 @@ def require_login(fun):
         if is_logged_in():
             return fun(*args, **kwargs)
         else:
-            http_utils.redirect('/login')
+            raise response_stream.HTTPRedirect('/login')
 
     return decorator
 
@@ -55,27 +70,28 @@ def require_admin(fun):
     @wraps(fun)
     def decorator(*args, **kwargs):
         try:
-            user_id = http_utils.get_session().get('user_id', None)
-            if user_id is None: http_utils.redirect('/login')
+            check_cleanup()
+            user_id = flask.session.get('user_id', None)
+            if user_id is None: raise response_stream.HTTPRedirect('/login')
             user = models.User(id=user_id)
-            if not user.is_admin: http_utils.redirect('/login')
+            if not user.is_admin: raise response_stream.HTTPRedirect('/login')
         except models.RecordNotFound:
-            http_utils.redirect('/login')
+            raise response_stream.HTTPRedirect('/login')
         return fun(*args, **kwargs)
 
     return decorator
 
 
 def logout():
-    http_utils.get_session().clear()
-    http_utils.redirect('/login')
+    flask.session.clear()
+    raise response_stream.HTTPRedirect('/login')
 
 
-def handle(*args, **kwargs):
+def handle() -> response_stream.ResponseStream:
     if is_logged_in():
-        http_utils.redirect('/')
-    if 'username' and 'password' in kwargs:
-        return login(kwargs['username'], kwargs['password'])
-    return render_loginpage('fail' in kwargs)
+        raise response_stream.HTTPRedirect('/')
+    if 'username' in flask.request.form and 'password' in flask.request.form:
+        return login(flask.request.form['username'], flask.request.form['password'])
+    return render_page(render_loginpage('fail' in flask.request.args))
 
 

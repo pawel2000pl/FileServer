@@ -156,3 +156,13 @@ body {
     opacity: 50%;
 }
 
+
+.login-panel input {
+    display: block;
+    margin: 12px;
+}
+
+
+.logo-cell img {
+    height: 100%;
+}

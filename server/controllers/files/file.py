@@ -27,7 +27,7 @@ def render_file(storage_entry: StorageEntry) -> Iterator[str]:
                 yield escape(line)
         yield '</textarea>'
     elif mime.startswith('image/'):
-        yield f'<image class="preview" src={download_url} alt="Cannot load the image"/>'
+        yield f'<image class="preview" src="{download_url}" alt="Cannot load the image"/>'
     elif mime.startswith('audio/'):
         yield f'<audio class="preview" controls src="{download_url}"></audio>'
     elif mime.startswith('video/'):
