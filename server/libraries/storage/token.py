@@ -1,6 +1,7 @@
 import os
 import models
 from typing import Optional
+from configuration import ALLOW_LINKS
 from libraries.storage import StorageEntry
 
 
@@ -13,6 +14,7 @@ class TokenEntry(StorageEntry):
         self.read = True
         self.write = capability.write
         if not self.get_file_view().exists(): raise FileNotFoundError()
+        if not ALLOW_LINKS and self.get_file_view().is_symlink(): raise PermissionError()
 
 
     def get_name(self) -> str:

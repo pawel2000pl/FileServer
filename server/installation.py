@@ -5,7 +5,7 @@ import models
 import server
 import logging
 
-from configuration import DEFAULT_ADMIN_NAME, DEFAULT_ADMIN_PASSWORD, STORAGE_PATH, SESSION_EXPIRES, SESSION_DIR
+from configuration import DEFAULT_ADMIN_NAME, DEFAULT_ADMIN_PASSWORD, STORAGE_PATH, SESSION_EXPIRES, SESSION_DIR, ALLOW_LINKS
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,8 @@ def delete_expired_sessions():
 def requires_installation_of_admin_capabilities(user: models.User) -> bool:
     assert user.is_admin
     for entry in os.scandir(STORAGE_PATH):
+        if not ALLOW_LINKS and entry.is_symlink(): 
+            continue
         query = models.Capability.query()
         query.where('user', user)
         query.where('storage_path', entry.name)
@@ -35,6 +37,8 @@ def requires_installation_of_admin_capabilities(user: models.User) -> bool:
 def install_admin_capabilities():
     admin_query = models.User.query().where('is_admin', True)
     for entry in os.scandir(STORAGE_PATH):
+        if not ALLOW_LINKS and entry.is_symlink(): 
+            continue
         for admin in admin_query.get():
             query = models.Capability.query()
             query.where('user', admin)

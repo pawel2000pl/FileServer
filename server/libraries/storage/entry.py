@@ -2,6 +2,7 @@ import os
 import configuration
 from os import DirEntry
 from urllib.parse import quote
+from configuration import ALLOW_LINKS
 from libraries.file_view import FileView
 from typing import Optional, Iterator, Union
 
@@ -97,7 +98,9 @@ class StorageEntry:
             raise PermissionError()
         if not self.has_entries():
             raise PermissionError()
-        return os.scandir(self.get_file_entry().__fspath__())
+        for entry in os.scandir(self.get_file_entry().__fspath__()):
+            if ALLOW_LINKS or not entry.is_symlink():
+                yield entry
 
 
     def __scan_backups(self, names_path: list[str], shared_set: set) -> Iterator['StorageEntry']:

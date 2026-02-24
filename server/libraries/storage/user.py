@@ -2,6 +2,7 @@ import os
 import models
 import configuration
 from os import DirEntry
+from configuration import ALLOW_LINKS
 from libraries.file_view import FileView
 from libraries.storage import StorageEntry
 from typing import Optional, Iterator, Union
@@ -25,6 +26,7 @@ class UserEntry(StorageEntry):
                 self.capability = access_capability
                 self.urlpath = ['userfile', access_user.name, access_capability.name]
         if not self.get_file_view().exists(): raise FileNotFoundError()
+        if not ALLOW_LINKS and self.get_file_view().is_symlink(): raise PermissionError()
 
 
     def goto(self, name: str) -> 'StorageEntry':
