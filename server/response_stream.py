@@ -83,10 +83,10 @@ def consume_response(rs: ResponseStream) -> flask.Response:
         return flask.Response(status=403, response='Forbidden')
     except FileNotFoundError:
         logger.error(traceback.format_exc())
-        return flask.Response(status=404, response='Forbidden')
+        return flask.Response(status=404, response='Not found')
     except liteorm.RecordNotFound:
         logger.error(traceback.format_exc())
-        return flask.Response(status=404, response='Forbidden')
+        return flask.Response(status=404, response='Not found')
     except Exception as err:
         logger.error(traceback.format_exc())
         return flask.Response(status=500, response='')

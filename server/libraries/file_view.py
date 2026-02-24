@@ -62,7 +62,7 @@ class FileView:
 
     def is_symlink(self) -> bool:
         try:
-            return stat.S_ISLNK(self.stat(follow_symlinks=False).st_mode)        
+            return stat.S_ISLNK(self.stat(follow_symlinks=True).st_mode)        
         except FileNotFoundError:
             return False
 

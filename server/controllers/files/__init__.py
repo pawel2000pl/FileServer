@@ -14,6 +14,7 @@ from controllers.files.directory import render_directory
 
 
 def content_factory(storage_entry: StorageEntry) -> Iterator[str]:
+    print(type(storage_entry))
     if not storage_entry.read:
         raise PermissionError()
 
@@ -59,7 +60,7 @@ def my_function():
     yield 'text 2'
 
 def render_for_user(url_path: list[str]) -> ResponseStream:
-    storage_entry = storage_entry = UrlStorage(url_path)
+    storage_entry = UrlStorage(url_path)
     if 'download' in flask.request.args:
         if not storage_entry.get_file_view().is_file():
             raise HTTPError(400, 'Bad request: only files allowed.')

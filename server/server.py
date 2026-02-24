@@ -52,7 +52,7 @@ def styles():
 @application.route('/.env')
 @response_stream.http_response
 def env():
-    yield response_stream.ResponseHeader('Content-Type', 'text/plain')
+    yield response_stream.ResponseHeader('Content-Type', 'text/plain; charset=utf-8')
     yield open(configuration.STATIC_PATH+'env.txt', 'rb').read()
 
 

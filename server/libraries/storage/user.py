@@ -16,7 +16,7 @@ class UserEntry(StorageEntry):
         self.access_user = access_user
         self.capability = capability
         self.pathuser = pathuser
-        self.read = parent.read or capability is not None
+        self.read = parent.read or capability is not None and storage_path.startswith(capability.storage_path) and capability.user.id == access_user.id
         self.write = parent.write or (capability is not None and capability.write)
         if not self.read or not self.write:
             access_capability = models.Capability.query().where('user', access_user).where('storage_path', storage_path).order('write', 'DESC').get_one()
@@ -53,7 +53,14 @@ class UserhomeEntry(StorageEntry):
     def goto(self, name: str) -> 'StorageEntry':
         path_capability = models.Capability.query().where('user', self.pathuser).where('name', name).get_one()
         if path_capability is None: raise FileNotFoundError()
-        access_capability = path_capability if self.access_user.id == self.pathuser.id else models.Capability.query().where('user', self.access_user).where('name', name).order('write', 'DESC').get_one() 
+        access_capability: Optional[models.Capability] = path_capability
+        if self.access_user.id != self.pathuser.id:
+            paths = path_capability.storage_path.split(os.sep)
+            query = models.Capability.query()
+            query.where('user', self.access_user)
+            query.where_in('storage_path', [os.sep.join(paths[:i]) for i in range(len(paths))])
+            query.order('write', 'DESC')
+            access_capability = query.get_one() 
         return UserEntry(self.access_user, access_capability, self.pathuser, self, self.urlpath+[name], path_capability.storage_path)
 
 

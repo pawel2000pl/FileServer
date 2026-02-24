@@ -1,8 +1,8 @@
-import mimetypes
 import configuration
 from html import escape
 from typing import Iterator
 from urllib.parse import quote
+from libraries.mime import get_mimetype
 from libraries.storage import StorageEntry
 from controllers.common import format_datetime, format_size
 
@@ -12,8 +12,8 @@ def render_file(storage_entry: StorageEntry) -> Iterator[str]:
     download_url = storage_entry.generate_url()+'?download=True'
     yield f'<a class="download-btn" href="{download_url}&save=True">Download</a>'
 
-    extension = '.' + storage_entry.get_name().rsplit('.', 1)[-1]
-    mime = mimetypes.types_map.get(extension, 'application/octet-stream')
+    extension = storage_entry.get_name().rsplit('.', 1)[-1]
+    mime = get_mimetype(extension)
 
     yield f'<span class="mime-span">File type: {mime}</span><br>'
 
