@@ -39,14 +39,14 @@ ResponseStreamValue = Union[str, bytes, ResponseHeader, ResponseCode, None]
 ResponseStream = Iterator[ResponseStreamValue]
 
 
-def assert_bytes(value: ResponseStreamValue) -> Union[bytes]:
-    assert isinstance(value, bytes)
-    return value
+def to_bytes(value: ResponseStreamValue) -> bytes:
+    if isinstance(value, bytes):
+        return value    
+    if isinstance(value, str):
+        return value.encode('utf-8')
+    assert False
 
 
-def assert_str(value: ResponseStreamValue) -> Union[str]:
-    assert isinstance(value, str)
-    return value
 
 
 def consume_response(rs: ResponseStream) -> flask.Response:
@@ -60,11 +60,8 @@ def consume_response(rs: ResponseStream) -> flask.Response:
                 response.status_code = value.code
             elif isinstance(value, Exception):
                 raise value
-            elif isinstance(value, bytes):
-                response.response = map(assert_bytes, chain([value], rs))
-                break
-            elif isinstance(value, str):
-                response.response = map(assert_str, chain([value], rs))
+            elif isinstance(value, (bytes, str)):
+                response.response = map(to_bytes, chain([value], rs))
                 break
         return response
     except StopIteration:

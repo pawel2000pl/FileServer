@@ -14,9 +14,12 @@ from controllers.files.directory import render_directory
 
 
 def content_factory(storage_entry: StorageEntry) -> Iterator[str]:
-    print(type(storage_entry))
     if not storage_entry.read:
         raise PermissionError()
+
+    create_share_generator = render_create_share_for(storage_entry)
+    directory_generator = render_directory(storage_entry) if storage_entry.has_entries() else render_file(storage_entry)
+    backups_generator = render_backups(storage_entry) if storage_entry.can_have_backup() else []
 
     yield f'''
         <div class="file-header">
@@ -28,20 +31,18 @@ def content_factory(storage_entry: StorageEntry) -> Iterator[str]:
         yield f'''<a class="parent-dir-href" href="{escape(storage_entry.parent.generate_url())}">Go to the parent directory</a>'''
     yield '</div>'    
     
-    for s in render_create_share_for(storage_entry):
+    for s in create_share_generator:
         yield s
 
     yield '<br>'
         
-    generator = render_directory(storage_entry) if storage_entry.has_entries() else render_file(storage_entry)
-    for s in generator:
+    for s in directory_generator:
         yield s
 
     if storage_entry.can_have_backup():
         yield '<h3>Backups</h3>'
-        for s in render_backups(storage_entry):
+        for s in backups_generator:
             yield s
-
 
 
 def render_for_token(url_path: list[str]) -> ResponseStream:
@@ -52,12 +53,6 @@ def render_for_token(url_path: list[str]) -> ResponseStream:
         return download_partial(storage_entry, bool(flask.request.args.get('save', False)))
     return render_page(content_factory(storage_entry))
     
-import flask
-
-def my_function():
-    yield 'text 1'
-    yield repr(flask.session['user_id'])
-    yield 'text 2'
 
 def render_for_user(url_path: list[str]) -> ResponseStream:
     storage_entry = UrlStorage(url_path)

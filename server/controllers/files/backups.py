@@ -9,6 +9,9 @@ from controllers.common import format_datetime, format_size
 
 
 def render_backups(storage_entry: StorageEntry) -> Iterator[str]:
+
+    scanner = storage_entry.scan_backups()
+
     yield f'''
     <div class="section-div fileslist-div">
         <table class="content-table file-table">
@@ -23,7 +26,7 @@ def render_backups(storage_entry: StorageEntry) -> Iterator[str]:
             <tbody>
     '''
     count = 0
-    for entry in storage_entry.scan_backups():
+    for entry in scanner:
         type_str = ''
         view = entry.get_file_view()
         if view.is_file(): type_str += 'F'

@@ -11,6 +11,7 @@ from controllers.common import format_datetime, format_size
 
 def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
 
+    base_url = storage_entry.generate_url()
 
     yield f'''
     <div class="section-div fileslist-div">
@@ -28,7 +29,6 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
     '''
 
     count = 0
-    base_url = storage_entry.generate_url()
 
     for entry in storage_entry.scan_entries():
         type_str = ''

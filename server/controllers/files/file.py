@@ -10,17 +10,17 @@ from controllers.common import format_datetime, format_size
 def render_file(storage_entry: StorageEntry) -> Iterator[str]:
     
     download_url = storage_entry.generate_url()+'?download=True'
-    yield f'<a class="download-btn" href="{download_url}&save=True">Download</a>'
-
+    system_path = storage_entry.get_system_path()
     extension = storage_entry.get_name().rsplit('.', 1)[-1]
     mime = get_mimetype(extension)
 
+    yield f'<a class="download-btn" href="{download_url}&save=True">Download</a>'
     yield f'<span class="mime-span">File type: {mime}</span><br>'
 
     show_new_tab_link = True
     if mime.startswith('text/') or mime == 'application/json' or mime == 'application/xml':
         yield '<textarea class="preview" readonly="readonly">'
-        with open(storage_entry.get_system_path()) as f:
+        with open(system_path) as f:
             line = ' '
             while len(line) > 0:
                 line = f.read(1024)

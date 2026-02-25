@@ -5,7 +5,7 @@ import urllib.parse
 from typing import Iterator
 from itertools import chain
 from libraries.storage import StorageEntry
-from configuration import FILE_BUFFER_SIZE
+from configuration import BUFFER_SIZE
 from controllers.files.stream_zip import stream_zip
 from response_stream import ResponseStream, ResponseHeader, ResponseCode, HTTPError
 
@@ -68,7 +68,7 @@ def serve_file(system_path: str, filename: str, download: bool = True) -> Respon
             yield subheader
         f.seek(range_min)        
         while read_size > 0:
-            buf = f.read(min(read_size, FILE_BUFFER_SIZE))
+            buf = f.read(min(read_size, BUFFER_SIZE))
             read_size -= len(buf)
             yield buf
 

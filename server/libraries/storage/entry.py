@@ -105,10 +105,11 @@ class StorageEntry:
 
     def __scan_backups(self, names_path: list[str], shared_set: set) -> Iterator['StorageEntry']:
         try:
-            my_path = os.path.realpath(self.get_system_path())
-            if my_path in shared_set or len(shared_set) > configuration.BACKUPS_SCAN_LIMIT:
-                return
-            shared_set.add(my_path)
+            if self.get_file_view().is_symlink():
+                real_path = os.path.realpath(self.get_system_path())
+                if real_path in shared_set or len(shared_set) > configuration.BACKUPS_SYMLINKS_LIMIT:
+                    return
+                shared_set.add(real_path)
         except NotImplementedError:
             pass
         if len(names_path) == 0:
