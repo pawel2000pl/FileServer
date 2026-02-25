@@ -14,7 +14,7 @@ def render_backups(storage_entry: StorageEntry) -> Iterator[str]:
 
     yield f'''
     <div class="section-div fileslist-div">
-        <table class="content-table dynamic-table file-table">
+        <table id="backup-table" class="content-table dynamic-table file-table">
             <thead>
                 <tr>
                     <th class="main-column dynamic">Path</th>

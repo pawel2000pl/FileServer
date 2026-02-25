@@ -13,6 +13,7 @@ function makeDynamicTable(table) {
     const headers = Array.from(table.querySelectorAll('thead tr th'));
     const all_rows = Array.from(table.querySelectorAll('tbody tr'));
     table.search_edits = Array();
+    const tableId = location.pathname + '??' + table.id;
 
     all_rows.forEach(tr => tr.visible = true);
 
@@ -25,6 +26,7 @@ function makeDynamicTable(table) {
     }
 
     const sortRows = (column, reverse) => {
+        localStorage.setItem(tableId, JSON.stringify({column, reverse}));
         all_rows.sort((ea, eb) => {
             const ca = ea.children[column];
             const cb = eb.children[column];
@@ -162,6 +164,13 @@ function makeDynamicTable(table) {
         th.appendChild(span_first_line);
         th.appendChild(span_second_line);
     });
+
+    
+    const lastSortStr = localStorage.getItem(tableId);
+    if (lastSortStr !== null) {
+        const lastSort = JSON.parse(lastSortStr);
+        sortRows(lastSort.column, lastSort.reverse);
+    }
 }
 
 

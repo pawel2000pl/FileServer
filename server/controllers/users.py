@@ -8,7 +8,7 @@ from controllers.common import render_page
 def render_users_table():
     yield '''
     <div class="section-div userslist-div">
-        <table class="content-table dynamic-table user-table">
+        <table id="users-table" class="content-table dynamic-table user-table">
             <thead>
                 <tr>
                     <th class="dynamic">id</th>

@@ -15,7 +15,7 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
 
     yield f'''
     <div class="section-div fileslist-div">
-        <table class="content-table dynamic-table file-table">
+        <table id="directory-table" class="content-table dynamic-table file-table">
             <thead>
                 <tr>
                     <th>#</th>
