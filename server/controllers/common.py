@@ -25,12 +25,16 @@ def format_datetime(timestamp):
 
 
 def render_header():
+    user_id = flask.session.get('user_id', None)
+    user = User(id=user_id) if user_id else None
+    user_name = escape('Logged as: '+user.name) if user is not None else '<a href="/login">Login</a>'
     message = flask.request.args.get('message', '')
     is_error = 'msg_error' in flask.request.args
     style = 'color: red;' if is_error else ''
     yield f'''
     <div style="{style}" class="filters-form-div">
-        <p>{escape(message)}</p>
+        <span style="float:left;">{escape(message)}</span>
+        <span style="float:right;">{user_name}</span>
     </div>
     '''
 
@@ -42,46 +46,59 @@ def render_menu():
 
     if user is not None:
         yield f'''
-            <h3>Files</h3>
-            <ul>
-                <li><a href="/userfile/{escape(user.name)}">Browse files</a></li>
-                <li><a href="/shared_by">Shared by me</a></li>
-                <li><a href="/shared_with">Shared with me</a></li>
-            </ul>
+        <table class="content-table menu-section">
+            <thead><tr><th>Files</th></tr></thead>
+            <tbody>
+                <tr><td><a href="/userfile/{escape(user.name)}">Browse files</a></td></tr>
+                <tr><td><a href="/shared_by">Shared by me</a></td></tr>
+                <tr><td><a href="/shared_with">Shared with me</a></td></tr>
+            </tbody>
+        </table>
         '''
-    
+
     if user and user.is_admin:
         yield '''
-            <h3>Administration</h3>
-            <ul>
-                <li><a href="/users">Users</a></li>
-                <li><a href="/shared_all">All shares</a></li>
-            </ul>
+        <table class="content-table menu-section">
+            <thead><tr><th>Administration</h3>
+            <tbody>
+                <tr><td><a href="/users">Users</a></td></tr>
+                <tr><td><a href="/shared_all">All shares</a></td></tr>
+            </tbody>
+        </table>
         '''
 
     if user is None:
         yield f'''
-            <h3>Account</h3>
-            <ul>
-                <li><a href='/login'>Login</a></li>
-            </ul>
+        <table class="content-table menu-section">
+            <thead><tr><th>Account</h3>
+            <tbody>
+                <tr><td><a href='/login'>Login</a></td></tr>
+            </tbody>
+        </table>
         '''
     else:
         yield f'''
-            <h3>Account</h3>
-            <ul>
-                <li><a href='/user/{user.id}'>Edit</a></li>
-                <li><a href='/logout'>Logut</a></li>
-            </ul>
+        <table class="content-table menu-section">
+            <thead><tr><th>Account</h3>
+            <tbody>
+                <tr><td><a href='/user/{user.id}'>Edit</a></td></tr>
+                <tr><td><a href='/logout'>Logut</a></td></tr>
+            </tbody>
+        </table>
         '''
 
 
 def render_page(content_factory):
+
+    header_generator = render_header()
+    menu_generator = render_menu()
+
     yield '''
     <!DOCTYPE HTML>
     <html>
         <head>
             <link rel="stylesheet" href="/styles.css" />
+            <link rel="stylesheet" href="/colors.css" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta charset="UTF-8" />
         </head>
@@ -90,19 +107,25 @@ def render_page(content_factory):
 
     yield '<div class="container">'
 
-    yield '<div class="cell logo-cell"><img src="/favicon.svg" alt="logo"/></div>'
+    yield '''
+        <div class="cell logo-cell">
+            <img src="/favicon.svg" alt="logo"/>
+            <span>File server</span>
+        </div>
+        '''
 
-    yield '<div class="cell">'
-    for data in render_header():
+
+    yield '<div class="cell header-cell">'
+    for data in header_generator:
         yield data
     yield '</div>'
-    
-    yield '<div class="cell">'
-    for data in render_menu():
+
+    yield '<div class="cell menu-cell">'
+    for data in menu_generator:
         yield data
     yield '</div>'
 
-    yield '<div class="cell">'
+    yield '<div class="cell content-cell">'
     for data in content_factory:
         yield data
     yield '</div>'

@@ -13,7 +13,7 @@ class StorageRoot(StorageEntry):
         if name == 'tokenfile':
             return AccessModeEntry(self, 'tokenfile')
         raise FileNotFoundError()
-    
+
 
     def has_entries(self) -> bool:
         return False
@@ -22,7 +22,6 @@ class StorageRoot(StorageEntry):
     def is_backup(self) -> bool:
         return False
 
-    
+
     def can_have_backup(self) -> bool:
         return False
-    

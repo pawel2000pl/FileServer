@@ -27,7 +27,9 @@ def render_loginpage(fail) -> Iterator[str]:
     yield """
         <div class="login-panel">
             <form action="/login" method="POST">
+                <span>Username</span>
                 <input type="text" name="username"/>
+                <span>Password</span>
                 <input type="password" name="password"/>
                 <input type="submit" name="login" value="login"/>
             </form>
@@ -38,7 +40,7 @@ def render_loginpage(fail) -> Iterator[str]:
 def login(username, password) -> Iterator[str]:
     t0 = time()
     user = models.User.query().where('name', username).get_one()
-    if user is None or not user.check_password_hash(password): 
+    if user is None or not user.check_password_hash(password):
         sleep(FAIL_LOGIN_DELAY_TIME - (time() - t0))
         raise response_stream.HTTPRedirect('/login?fail=true')
     flask.session['user_id'] = user.id

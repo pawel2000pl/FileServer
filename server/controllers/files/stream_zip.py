@@ -57,7 +57,7 @@ def stream_zip(files, chunk_size=65536, get_compressobj=lambda: zlib.compressobj
 
         end_of_central_directory_signature = b'PK\x05\x06'
         end_of_central_directory_struct = Struct('<HHHHIIH')
-        
+
         zip_64_extra_signature = b'\x01\x00'
         zip_64_local_extra_struct = Struct('<2sHQQ')
         zip_64_central_directory_extra_struct = Struct('<2sHQQQ')

@@ -32,7 +32,7 @@ class UpdateSchemaResult(Enum):
 
 
 class Model:
-    
+
     id: int
 
     table_name: Optional[str] = None
@@ -95,7 +95,7 @@ class Model:
         cls.table_name = result
         return result
 
-    
+
     @classmethod
     def __update_annotations(cls):
         keys = list(cls.__annotations__.keys())
@@ -168,7 +168,7 @@ class Model:
         else:
             assert len(self.__annotations__) == len(data)
             for col, val in zip(self.__annotations__.keys(), data):
-                self.set_value(col, val)            
+                self.set_value(col, val)
         return self
 
 
@@ -176,13 +176,13 @@ class Model:
         assert column in self.__annotations__
         if (not raw) and issubclass(self.__annotations__[column], Model):
             if self.__subobjects.get(column, None) is None:
-                if self.__data.get(column, None) is None: 
+                if self.__data.get(column, None) is None:
                     return None
                 model_class = self.__annotations__[column]
                 self.__subobjects[column] = model_class(**{model_class.primary_key: self.__data[column]})
             return self.__subobjects[column]
         return self.__data.get(column, None)
-            
+
 
     def set_value(self, column: str, value: Any):
         assert column in self.__annotations__
@@ -217,11 +217,11 @@ class Model:
 
     def __setitem__(self, name: str, value: Any):
         return self.set_value(name, value)
-        
+
 
     def __str__(self):
         return self.__class__.__name__ + ':\n'+str().join(['\t'+col+': '+repr(self.__data[col])+'\n' for col in self.get_columns()])
-        
+
 
     def __repr__(self):
         return self.__class__.__name__ + '('+', '.join([str(col)+'='+repr(self.__data.get(col, None)) for col in self.get_columns()])+')'
@@ -298,7 +298,7 @@ class Model:
     def invalidate_cache(self):
         self.__cache.pop(self.get_pk_val(), None)
 
-    
+
     @classmethod
     def invalidate_model_cache(cls):
         cls.__cache.clear()
@@ -306,7 +306,7 @@ class Model:
 
     @staticmethod
     def invalidate_all_cache():
-        for model in ALL_REGISTRED_MODELS:            
+        for model in ALL_REGISTRED_MODELS:
             model.__cache.clear()
 
 
@@ -337,7 +337,7 @@ class Model:
             else:
                 insert_columns_str = ', '.join(insert_columns)
                 insert_columns_params_str = ', '.join(['?']*len(insert_columns))
-                cursor.execute(                
+                cursor.execute(
                     f'INSERT INTO {self.table_name} ({insert_columns_str}) VALUES ({insert_columns_params_str})',
                     [self.__data.get(col, None) for col in insert_columns]
                 )
@@ -390,7 +390,7 @@ class Model:
     def after_insert(self):
         pass
 
-    
+
     @staticmethod
     def __simple_escape(val: Union[None, int, float, str, bool]) -> str:
         if val is None:
@@ -413,7 +413,7 @@ class Model:
             return f'{name} INTEGER PRIMARY KEY AUTOINCREMENT'
         elif issubclass(dtype, Model):
             default_value = cls.__simple_escape(cls.get_default_value(name))
-            default_sql = '' if default_value == 'NULL' else 'DEFAULT ' + default_value 
+            default_sql = '' if default_value == 'NULL' else 'DEFAULT ' + default_value
             not_null_sql = 'NOT NULL' if name in cls.__not_null_set else ''
             return f'{name} INTEGER {not_null_sql} {default_sql} REFERENCES {dtype.table_name}({dtype.primary_key})'
         else:
@@ -457,9 +457,9 @@ class Model:
         cursor = cls.database.get_cursor(cursor)
         cursor.execute('SELECT name FROM sqlite_master WHERE name = ?', [cls.table_name])
         table_exists = len(cursor.fetchall()) > 0
-        old_table_name = PREFIX + cls.table_name      
+        old_table_name = PREFIX + cls.table_name
         db_field_names = []
-        if table_exists:  
+        if table_exists:
             cursor.execute(f'PRAGMA table_info("{cls.table_name}")')
             db_field_names = [row[1] for row in cursor]
             cursor.execute(f'ALTER TABLE {cls.table_name} RENAME TO {old_table_name}')
@@ -515,12 +515,12 @@ class Model:
                 if row[3] not in cls.__annotations__ \
                 or not issubclass(cls.__annotations__[row[3]], Model) \
                 or cls.__annotations__[row[3]].table_name != row[2] \
-                or cls.__annotations__[row[3]].primary_key != row[4]:                    
+                or cls.__annotations__[row[3]].primary_key != row[4]:
                     result = UpdateSchemaResult.ADDITIONAL_FKS
                     cls.logger.warning(f'Unused foreign keys in the table {cls.table_name}.{row[3]} -> {row[2]}.{row[4]}')
 
         cmds.extend(cls.create_indexes_sql())
-        for cmd in cmds: 
+        for cmd in cmds:
             cursor.execute(cmd)
         cls.logger.info(f'Updating the table "{cls.table_name}" finished with result: {result.name}')
         return result

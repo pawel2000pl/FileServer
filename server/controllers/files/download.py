@@ -18,7 +18,7 @@ def get_ranges(r: str, default_size: int) -> tuple[int, int]:
     return (int(strs[0]), int(strs[1]))
 
 
-def serve_file(system_path: str, filename: str, download: bool = True) -> ResponseStream:    
+def serve_file(system_path: str, filename: str, download: bool = True) -> ResponseStream:
 
     f = open(system_path, 'rb', 0)
     size = f.seek(0, 2)
@@ -35,7 +35,7 @@ def serve_file(system_path: str, filename: str, download: bool = True) -> Respon
     if flask.request.method == 'HEAD':
         yield bytes()
         return
-        
+
     ranges = flask.request.headers.get('Range', f'bytes=0-{size-1}').replace(' ', '')
     raw_ranges = ranges[len('bytes='):]
     ranges_list = list(map(lambda x: tuple(get_ranges(x, size-1)), raw_ranges.split(',')))
@@ -66,7 +66,7 @@ def serve_file(system_path: str, filename: str, download: bool = True) -> Respon
     for range_min, range_max, subheader, read_size in parts:
         if multipart:
             yield subheader
-        f.seek(range_min)        
+        f.seek(range_min)
         while read_size > 0:
             buf = f.read(min(read_size, BUFFER_SIZE))
             read_size -= len(buf)
@@ -77,5 +77,5 @@ def serve_file(system_path: str, filename: str, download: bool = True) -> Respon
 def download_partial(storage_entry: StorageEntry, download: bool = False) -> ResponseStream:
     assert storage_entry.get_file_entry().is_file()
     return serve_file(storage_entry.get_system_path(), storage_entry.get_name(), download)
-    
+
 

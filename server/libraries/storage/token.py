@@ -6,7 +6,7 @@ from libraries.storage import StorageEntry
 
 
 class TokenEntry(StorageEntry):
-    
+
     def __init__(self, capability: models.Capability, parent: Optional[StorageEntry], urlpath: list[str]):
         assert len(urlpath) >= 2
         super().__init__(parent, urlpath)

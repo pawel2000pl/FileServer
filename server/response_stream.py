@@ -41,7 +41,7 @@ ResponseStream = Iterator[ResponseStreamValue]
 
 def to_bytes(value: ResponseStreamValue) -> bytes:
     if isinstance(value, bytes):
-        return value    
+        return value
     if isinstance(value, str):
         return value.encode('utf-8')
     assert False
@@ -88,7 +88,7 @@ def consume_response(rs: ResponseStream) -> flask.Response:
         logger.error(traceback.format_exc())
         return flask.Response(status=500, response='')
 
-        
+
 def http_response(fun):
 
     @wraps(fun)
@@ -98,5 +98,5 @@ def http_response(fun):
             yield None
             for v in fun(*args, **kwargs): yield v
         return consume_response(generator())
-        
+
     return decorator

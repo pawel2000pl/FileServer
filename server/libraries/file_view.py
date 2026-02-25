@@ -46,8 +46,8 @@ class FileView:
         return self.stat(follow_symlinks=follow_symlinks).st_ino
 
 
-    def is_dir(self, *, follow_symlinks: bool = True) -> bool:   
-        try:     
+    def is_dir(self, *, follow_symlinks: bool = True) -> bool:
+        try:
             return stat.S_ISDIR(self.stat(follow_symlinks=follow_symlinks).st_mode)
         except FileNotFoundError:
             return False
@@ -55,14 +55,14 @@ class FileView:
 
     def is_file(self, *, follow_symlinks: bool = True) -> bool:
         try:
-            return stat.S_ISREG(self.stat(follow_symlinks=follow_symlinks).st_mode)        
+            return stat.S_ISREG(self.stat(follow_symlinks=follow_symlinks).st_mode)
         except FileNotFoundError:
             return False
 
 
     def is_symlink(self) -> bool:
         try:
-            return stat.S_ISLNK(self.stat(follow_symlinks=True).st_mode)        
+            return stat.S_ISLNK(self.stat(follow_symlinks=True).st_mode)
         except FileNotFoundError:
             return False
 

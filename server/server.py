@@ -9,9 +9,9 @@ import flask_session
 import response_stream
 
 application = flask.Flask(__name__)
-application.config["SESSION_PERMANENT"] = False     
+application.config["SESSION_PERMANENT"] = False
 application.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(seconds=configuration.SESSION_EXPIRES)
-application.config["SESSION_TYPE"] = "filesystem"    
+application.config["SESSION_TYPE"] = "filesystem"
 application.config["SESSION_FILE_DIR"] = configuration.SESSION_DIR
 
 
@@ -29,24 +29,25 @@ def index():
 
 
 @application.route('/favicon.ico')
-@response_stream.http_response
-def favicon_ico():        
-    yield response_stream.ResponseHeader('Content-Type', 'image/svg+xml')
-    yield open(configuration.STATIC_PATH+'favicon.svg', 'rb').read()
-
-
 @application.route('/favicon.svg')
 @response_stream.http_response
-def favicon_svg():        
+def favicon_ico():
     yield response_stream.ResponseHeader('Content-Type', 'image/svg+xml')
     yield open(configuration.STATIC_PATH+'favicon.svg', 'rb').read()
 
 
 @application.route('/styles.css')
 @response_stream.http_response
-def styles():        
+def styles():
     yield response_stream.ResponseHeader('Content-Type', 'text/css')
     yield open(configuration.STATIC_PATH+'styles.css', 'rb').read()
+
+
+@application.route('/colors.css')
+@response_stream.http_response
+def color_styles():
+    yield response_stream.ResponseHeader('Content-Type', 'text/css')
+    yield open(configuration.STATIC_PATH+'colors.css', 'rb').read()
 
 
 @application.route('/.env')

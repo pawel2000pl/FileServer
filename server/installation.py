@@ -23,7 +23,7 @@ def delete_expired_sessions():
 def requires_installation_of_admin_capabilities(user: models.User) -> bool:
     assert user.is_admin
     for entry in os.scandir(STORAGE_PATH):
-        if not ALLOW_LINKS and entry.is_symlink(): 
+        if not ALLOW_LINKS and entry.is_symlink():
             continue
         query = models.Capability.query()
         query.where('user', user)
@@ -37,7 +37,7 @@ def requires_installation_of_admin_capabilities(user: models.User) -> bool:
 def install_admin_capabilities():
     admin_query = models.User.query().where('is_admin', True)
     for entry in os.scandir(STORAGE_PATH):
-        if not ALLOW_LINKS and entry.is_symlink(): 
+        if not ALLOW_LINKS and entry.is_symlink():
             continue
         for admin in admin_query.get():
             query = models.Capability.query()

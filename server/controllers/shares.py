@@ -90,9 +90,10 @@ def render_create_share_for(storage_entry: StorageEntry) -> Iterator[str]:
     assert capability is not None
     rest_of_path = storage_path[len(capability.storage_path)+1:]
     yield f'''
-    <details class="share-panel">
-        <summary>Share</summary>
+    <span onclick="share_panel.showModal()" class="share-button">Share</span>
+    <dialog id="share_panel" class="share-panel">
         <form action="/create_share" method="post">
+            <span class="close-share-btn" onclick="share_panel.close()">Close</span>
             <p>
                 <span>Username</span><br>
                 <input name="username"/>
@@ -107,7 +108,7 @@ def render_create_share_for(storage_entry: StorageEntry) -> Iterator[str]:
             <input type="submit" name="share_user" value="Share with user"/>
             <input type="submit" name="share_token" value="Share with token"/>
         </form>
-    </details>
+    </dialog>
     '''
 
 
@@ -140,7 +141,7 @@ def create_share() -> Iterator[str]:
             yield '<p>User not found</p>'
             yield return_a
             return
-        
+
         new_capability = models.Capability()
         new_capability.storage_path = os.sep.join([capability.storage_path, rest_of_path])
         new_capability.depends_on = capability
@@ -150,7 +151,7 @@ def create_share() -> Iterator[str]:
             assert user2 is not None
             new_capability.user = user2
         if share_token:
-            new_capability.token = base64.b32encode(open('/dev/urandom', 'rb').read(32)).decode('utf-8') 
+            new_capability.token = base64.b32encode(open('/dev/urandom', 'rb').read(32)).decode('utf-8')
         new_capability.persist()
 
         for s in render_shared_table(False, True, new_capability.id):

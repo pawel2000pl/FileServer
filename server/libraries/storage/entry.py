@@ -34,7 +34,7 @@ class StorageEntry:
     def can_be_shared(self) -> bool:
         return self.is_real_file()
 
-    
+
     def is_real_file(self) -> bool:
         try:
             self.get_storage_path()
@@ -151,7 +151,7 @@ class StorageEntry:
         for backup in search_root.__scan_backups(names, set()):
             if backup.generate_url() == self.generate_url(): continue
             yield backup
-        
+
 
     def get_storage_path(self) -> str:
         if not self.read:

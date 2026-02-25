@@ -9,7 +9,7 @@ from typing import Optional, Iterator, Union
 
 
 class UserEntry(StorageEntry):
-    
+
     def __init__(self, access_user: models.User, capability: Optional[models.Capability], pathuser: models.User, parent: StorageEntry, urlpath: list[str], storage_path: str):
         super().__init__(parent, urlpath)
         self.storage_path = storage_path
@@ -60,7 +60,7 @@ class UserhomeEntry(StorageEntry):
             query.where('user', self.access_user)
             query.where_in('storage_path', [os.sep.join(paths[:i]) for i in range(len(paths))])
             query.order('write', 'DESC')
-            access_capability = query.get_one() 
+            access_capability = query.get_one()
         return UserEntry(self.access_user, access_capability, self.pathuser, self, self.urlpath+[name], path_capability.storage_path)
 
 
@@ -73,11 +73,11 @@ class UserhomeEntry(StorageEntry):
 
     def get_file_entry(self) -> FileView:
         raise PermissionError()
-        
+
 
     def has_entries(self) -> bool:
         return True
 
-    
+
     def can_have_backup(self) -> bool:
         return True

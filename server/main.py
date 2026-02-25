@@ -5,12 +5,12 @@ import models
 import gunicorn.config
 
 
-application = server.application  
+application = server.application
 
 
 with application.app_context():
     models.auto_update()
-    installation.install_admin()  
+    installation.install_admin()
     installation.delete_expired_sessions()
 
 

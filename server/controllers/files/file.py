@@ -8,13 +8,16 @@ from controllers.common import format_datetime, format_size
 
 
 def render_file(storage_entry: StorageEntry) -> Iterator[str]:
-    
+
     download_url = storage_entry.generate_url()+'?download=True'
     system_path = storage_entry.get_system_path()
     extension = storage_entry.get_name().rsplit('.', 1)[-1]
     mime = get_mimetype(extension)
+    stat = storage_entry.get_file_view().stat()
 
     yield f'<a class="download-btn" href="{download_url}&save=True">Download</a>'
+    yield f'<span class="modified-span">Modified: {escape(format_datetime(stat.st_mtime))}</span><br>'
+    yield f'<span class="size-span">File size: {format_size(stat.st_size)}</span><br>'
     yield f'<span class="mime-span">File type: {mime}</span><br>'
 
     show_new_tab_link = True

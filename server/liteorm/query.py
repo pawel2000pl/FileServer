@@ -21,7 +21,7 @@ class Query(Generic[T]):
         self.__offset: Optional[int] = None
         self.__model_columns = set(self.__model_class.get_columns())
 
-    
+
     @staticmethod
     def add_value(value):
         return value.get_pk_val() if isinstance(value, liteorm.Model) else value
@@ -240,6 +240,6 @@ class Query(Generic[T]):
             return val
         return None
 
-    
+
     def __iter__(self) -> Iterator[T]:
         return self.get()

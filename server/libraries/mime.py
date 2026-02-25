@@ -210,5 +210,5 @@ def get_mimetype(extension: str) -> str:
     default = mimetypes.types_map.get('.'+extension, None)
     if default is not None: return default
     return EXTENSION_TO_CONTENT_TYPE.get(extension, 'application/octet-stream')
-    
+
 

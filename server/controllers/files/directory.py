@@ -20,9 +20,9 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
                 <tr>
                     <th>#</th>
                     <th class="main-column">Name</th>
-                    <th>Modified</th>
-                    <th>Size</th>
-                    <th>Type</th>
+                    <th class="only-pc">Modified</th>
+                    <th class="only-pc">Size</th>
+                    <th class="only-pc">Type</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,7 +40,7 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
         full_url = base_url + '/' + quote(entry.name)
         yield f'''
             <tr>
-                <th><input type="checkbox" name="fileentry[]" value="{escape(full_url)}"/></th>
+                <td><input type="checkbox" name="fileentry[]" value="{escape(full_url)}"/></td>
                 <td class="main-column"><a href="{escape(full_url)}">{escape(entry.name)}</a></td>
                 <td class="only-pc">{escape(format_datetime(stat.st_mtime))}</td>
                 <td class="only-pc" sortkey="{int(stat.st_size)}">{format_size(stat.st_size)}</td>

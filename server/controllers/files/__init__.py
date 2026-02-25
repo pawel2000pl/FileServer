@@ -20,22 +20,26 @@ def content_factory(storage_entry: StorageEntry) -> Iterator[str]:
     create_share_generator = render_create_share_for(storage_entry)
     directory_generator = render_directory(storage_entry) if storage_entry.has_entries() else render_file(storage_entry)
     backups_generator = render_backups(storage_entry) if storage_entry.can_have_backup() else []
+    url = storage_entry.generate_url()
+    visible_path = '/'.join(url.split('/')[3:])
+    show_visible_path = '' if len(visible_path) else 'style="display: none;"'
+    bottom_left_radius = '' if len(visible_path) else 'style="border-bottom-left-radius: 10px;"'
 
     yield f'''
         <div class="file-header">
-            <span class="file-title">{escape(storage_entry.get_name())}</span>
-            <span class="storage-path">{escape(storage_entry.get_name())}</span>
+            <span class="file-title" {bottom_left_radius}>{escape(storage_entry.get_name())}</span>
+            <span class="storage-path" {show_visible_path}>{escape(visible_path)}</span>
         </div>'''
     yield '<div class="file-tool-panel">'
     if storage_entry.parent is not None and storage_entry.parent.read:
         yield f'''<a class="parent-dir-href" href="{escape(storage_entry.parent.generate_url())}">Go to the parent directory</a>'''
-    yield '</div>'    
-    
+    yield '</div>'
+
     for s in create_share_generator:
         yield s
 
     yield '<br>'
-        
+
     for s in directory_generator:
         yield s
 
@@ -52,7 +56,7 @@ def render_for_token(url_path: list[str]) -> ResponseStream:
             raise HTTPError(400, 'Bad request: only files allowed.')
         return download_partial(storage_entry, bool(flask.request.args.get('save', False)))
     return render_page(content_factory(storage_entry))
-    
+
 
 def render_for_user(url_path: list[str]) -> ResponseStream:
     storage_entry = UrlStorage(url_path)
@@ -61,4 +65,4 @@ def render_for_user(url_path: list[str]) -> ResponseStream:
             raise HTTPError(400, 'Bad request: only files allowed.')
         return download_partial(storage_entry, bool(flask.request.args.get('save', False)))
     return render_page(content_factory(storage_entry))
-    
+
