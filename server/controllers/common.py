@@ -97,8 +97,8 @@ def render_page(content_factory):
     <!DOCTYPE HTML>
     <html>
         <head>
-            <link rel="stylesheet" href="/styles.css" />
-            <link rel="stylesheet" href="/colors.css" />
+            <link rel="stylesheet" href="/static/styles.css" />
+            <link rel="stylesheet" href="/static/colors.css" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta charset="UTF-8" />
         </head>
@@ -109,11 +109,10 @@ def render_page(content_factory):
 
     yield '''
         <div class="cell logo-cell">
-            <img src="/favicon.svg" alt="logo"/>
+            <img src="/static/favicon.svg" alt="logo"/>
             <span>File server</span>
         </div>
         '''
-
 
     yield '<div class="cell header-cell">'
     for data in header_generator:
@@ -133,6 +132,7 @@ def render_page(content_factory):
     yield '</div>'
 
     yield '''
+        <script src="/static/table_utils.js" defer></script>
         </body>
     </html>
     '''

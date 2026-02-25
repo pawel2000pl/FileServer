@@ -8,12 +8,12 @@ from controllers.common import render_page
 def render_users_table():
     yield '''
     <div class="section-div userslist-div">
-        <table class="content-table user-table">
+        <table class="content-table dynamic-table user-table">
             <thead>
                 <tr>
-                    <th>id</th>
-                    <th class="main-column">Name</th>
-                    <th>is admin</th>
+                    <th class="dynamic">id</th>
+                    <th class="main-column dynamic">Name</th>
+                    <th class="dynamic">is admin</th>
                 </tr>
             </thead>
             <tbody>
@@ -75,7 +75,7 @@ def render_user_edit(user_id: Optional[int]):
 
     yield f'''
     <form method="POST" action="/user{user_path_id}">
-        <table>
+        <table class="content-table">
             <tr>
                 <td>ID</td>
                 <td>{user.id}</td>

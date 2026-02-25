@@ -31,15 +31,15 @@ def render_shared_table(only_shared_with_me: bool, only_shared_by_me: bool, only
 
     yield '''
     <div class="section-div sharedlist-div">
-        <table class="content-table shared-table">
+        <table class="content-table dynamic-table shared-table">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Name</th>
-                    <th>Shared by</th>
-                    <th>Shared with user / token</th>
-                    <th>Share method</th>
-                    <th>Write</th>
+                    <th class="dynamic">Name</th>
+                    <th class="dynamic>Shared by</th>
+                    <th class="dynamic>Shared with user / token</th>
+                    <th class="dynamic>Share method</th>
+                    <th class="dynamic>Write</th>
                 </tr>
             </thead>
             <tbody>

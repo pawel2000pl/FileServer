@@ -7,6 +7,7 @@ import urllib.parse
 import configuration
 import flask_session
 import response_stream
+from libraries.mime import get_mimetype
 
 application = flask.Flask(__name__)
 application.config["SESSION_PERMANENT"] = False
@@ -19,6 +20,11 @@ application.config["SESSION_FILE_DIR"] = configuration.SESSION_DIR
 flask_session.Session(application)
 
 
+STATIC_FILES: dict[str, os.DirEntry] = dict()
+for entry in os.scandir(configuration.STATIC_PATH):
+    STATIC_FILES[entry.name] = entry
+
+
 @application.route('/')
 @response_stream.http_response
 @controllers.login.require_login
@@ -29,25 +35,10 @@ def index():
 
 
 @application.route('/favicon.ico')
-@application.route('/favicon.svg')
 @response_stream.http_response
 def favicon_ico():
     yield response_stream.ResponseHeader('Content-Type', 'image/svg+xml')
     yield open(configuration.STATIC_PATH+'favicon.svg', 'rb').read()
-
-
-@application.route('/styles.css')
-@response_stream.http_response
-def styles():
-    yield response_stream.ResponseHeader('Content-Type', 'text/css')
-    yield open(configuration.STATIC_PATH+'styles.css', 'rb').read()
-
-
-@application.route('/colors.css')
-@response_stream.http_response
-def color_styles():
-    yield response_stream.ResponseHeader('Content-Type', 'text/css')
-    yield open(configuration.STATIC_PATH+'colors.css', 'rb').read()
 
 
 @application.route('/.env')
@@ -55,6 +46,19 @@ def color_styles():
 def env():
     yield response_stream.ResponseHeader('Content-Type', 'text/plain; charset=utf-8')
     yield open(configuration.STATIC_PATH+'env.txt', 'rb').read()
+
+
+@application.route('/static/<string:filename>')
+@response_stream.http_response
+def styles(filename):
+    if filename not in STATIC_FILES:
+        raise response_stream.FileNotFoundError()
+    mime = get_mimetype(filename.split('.')[-1])
+    if mime.startswith('text/'):
+        mime += '; charet=utf-8'
+    yield response_stream.ResponseHeader('Content-Type', mime)
+    with open(STATIC_FILES[filename].__fspath__()) as f:
+        yield f.read()
 
 
 @application.route('/login', methods=['GET', 'POST'])

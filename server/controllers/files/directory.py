@@ -15,14 +15,14 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
 
     yield f'''
     <div class="section-div fileslist-div">
-        <table class="content-table file-table">
+        <table class="content-table dynamic-table file-table">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th class="main-column">Name</th>
-                    <th class="only-pc">Modified</th>
-                    <th class="only-pc">Size</th>
-                    <th class="only-pc">Type</th>
+                    <th class="main-column dynamic">Name</th>
+                    <th class="only-pc dynamic">Modified</th>
+                    <th class="only-pc dynamic">Size</th>
+                    <th class="only-pc dynamic">Type</th>
                 </tr>
             </thead>
             <tbody>
