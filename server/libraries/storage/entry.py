@@ -18,9 +18,13 @@ class StorageEntry:
 
 
     def get_name(self) -> str:
-        if len(self.urlpath) == 0:
+        if not self.has_name():
             raise PermissionError()
         return self.urlpath[-1]
+
+    
+    def has_name(self) -> bool:
+        return len(self.urlpath) > 0
 
 
     def is_backup(self) -> bool:

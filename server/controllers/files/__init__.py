@@ -21,14 +21,17 @@ def content_factory(storage_entry: StorageEntry) -> Iterator[str]:
     directory_generator = render_directory(storage_entry) if storage_entry.has_entries() else render_file(storage_entry)
     backups_generator = render_backups(storage_entry) if storage_entry.can_have_backup() else []
     url = storage_entry.generate_url()
-    visible_path = '/'.join(url.split('/')[3:])
-    show_visible_path = '' if len(visible_path) else 'style="display: none;"'
-    bottom_left_radius = '' if len(visible_path) else 'style="border-bottom-left-radius: 10px;"'
+    path_htmls = []
+    se: Optional[StorageEntry] = storage_entry
+    while se is not None and se.has_name():
+        path_htmls.append(f'<a href={escape(se.generate_url())}>{escape(se.get_name())}</a>')
+        se = se.parent
+    path_html = '/'.join(path_htmls[::-1][1:])
 
     yield f'''
         <div class="file-header">
-            <span class="file-title" {bottom_left_radius}>{escape(storage_entry.get_name())}</span>
-            <span class="storage-path" {show_visible_path}>{escape(visible_path)}</span>
+            <span class="file-title">{escape(storage_entry.get_name())}</span>
+            <span class="storage-path">{path_html}</span>
         </div>'''
     yield '<div class="file-tool-panel">'
     if storage_entry.parent is not None and storage_entry.parent.read:
