@@ -53,6 +53,8 @@ function makeDynamicTable(table) {
             if (th.search_mode == 4) return (content, key) => content.localeCompare(key) <= 0;
             if (th.search_mode == 5) return (content, key) => content.localeCompare(key) > 0;
             if (th.search_mode == 6) return (content, key) => content.localeCompare(key) >= 0;
+            if (th.search_mode == 7) return (content, key) => content !== key;
+            if (th.search_mode == 8) return (content, key) => content.match(key) === null;
             return (_1, _2) => true;
         });
         const values = table.search_edits.map(x => x.value);
@@ -100,6 +102,7 @@ function makeDynamicTable(table) {
         }
         span_action_search.onclick = filterRows;
         span_action_search.textContent = unicode_search_action;
+        span_action_search.title = 'Filter';
         span_action_search.style.cursor = 'pointer';
         span_action_search.style.marginLeft = '8px'; 
         span_input_search.appendChild(input_search);
@@ -108,6 +111,7 @@ function makeDynamicTable(table) {
         const sort_up_span = document.createElement('span');
         sort_up_span.textContent = unicode_arrow_up;
         sort_up_span.onclick = () => sortRows(index, false);
+        sort_up_span.title = 'Sort ascending';
         sort_up_span.style.marginLeft = '8px';
         sort_up_span.style.cursor = 'pointer';
         span_options.appendChild(sort_up_span);
@@ -115,6 +119,7 @@ function makeDynamicTable(table) {
         const sort_down_span = document.createElement('span');
         sort_down_span.textContent = unicode_arrow_down;
         sort_down_span.onclick = () => sortRows(index, true);
+        sort_down_span.title = 'Sort descending';
         sort_down_span.style.marginLeft = '8px';
         sort_down_span.style.cursor = 'pointer';
         span_options.appendChild(sort_down_span);
@@ -122,6 +127,7 @@ function makeDynamicTable(table) {
         const search_span = document.createElement('span');
         search_span.style.cursor = 'pointer';
         search_span.textContent = unicode_search;
+        search_span.title = 'Filters';
         search_span.onclick = () => {
             if (span_second_line.style.display == 'none') {
                 span_second_line.style.display = 'flex';
@@ -138,19 +144,50 @@ function makeDynamicTable(table) {
 
         const search_mode_span = document.createElement('span');
         th.search_mode = 0;
-        search_mode_span.textContent = '%...';
+        search_mode_span.textContent = String.fromCharCode(8838);
+        search_mode_span.title = 'starts with';
         search_mode_span.onclick = () => {
-            th.search_mode = (th.search_mode + 1) % 7;
-            if (th.search_mode == 0) search_mode_span.textContent = '%...';
-            if (th.search_mode == 1) search_mode_span.textContent = '%';
-            if (th.search_mode == 2) search_mode_span.textContent = '=';
-            if (th.search_mode == 3) search_mode_span.textContent = '<';
-            if (th.search_mode == 4) search_mode_span.textContent = String.fromCharCode(8804);
-            if (th.search_mode == 5) search_mode_span.textContent = '>';
-            if (th.search_mode == 6) search_mode_span.textContent = String.fromCharCode(8805);
+            th.search_mode = (th.search_mode + 1) % 9;
+            if (th.search_mode == 0) {
+                search_mode_span.textContent = String.fromCharCode(8838);
+                search_mode_span.title = 'starts with';
+            }
+            if (th.search_mode == 1) {
+                search_mode_span.textContent = String.fromCharCode(8834);
+                search_mode_span.title = 'contains';
+            }
+            if (th.search_mode == 2) {
+                search_mode_span.textContent = '=';
+                search_mode_span.title = 'is equal';
+            }
+            if (th.search_mode == 3) {
+                search_mode_span.textContent = '<';
+                search_mode_span.title = 'is less';
+            }
+            if (th.search_mode == 4) {
+                search_mode_span.textContent = String.fromCharCode(8804);
+                search_mode_span.title = 'is less or equal';
+            }
+            if (th.search_mode == 5) {
+                search_mode_span.textContent = '>';
+                search_mode_span.title = 'is greater than';
+            }
+            if (th.search_mode == 6) {
+                search_mode_span.textContent = String.fromCharCode(8805);
+                search_mode_span.title = 'is greater or equal';
+            }
+            if (th.search_mode == 7) {
+                search_mode_span.textContent = String.fromCharCode(8800);
+                search_mode_span.title = 'is not equal';
+            }
+            if (th.search_mode == 8) {
+                search_mode_span.textContent = String.fromCharCode(8836);
+                search_mode_span.title = 'does not contain';
+            }  
         };
         search_mode_span.style.marginLeft = '8px';
         search_mode_span.style.cursor = 'pointer';
+        search_mode_span.style.width = '1em';
         span_second_line.appendChild(search_mode_span);
 
         span_first_line.style.display = 'flex';

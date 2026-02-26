@@ -74,27 +74,29 @@ def render_user_edit(user_id: Optional[int]):
     checked_admin = 'checked="checked"' if user.is_admin else ''
 
     yield f'''
-    <form method="POST" action="/user{user_path_id}">
-        <table class="content-table">
-            <tr>
-                <td>ID</td>
-                <td>{user.id}</td>
-            </tr>
-            <tr>
-                <td>Username</td>
-                <td><input name="name" value="{escape(user.name)}"/></td>
-            </tr>
-            <tr>
-                <td>Password</td>
-                <td><input name="password" type="password" value=""/></td>
-            </tr>
-            <tr>
-                <td><label for="is-admin-chkbsk">Is admin</label></td>
-                <td><input id="is-admin-chkbsk" type="checkbox" {only_admin} {checked_admin} name="is_admin"/></td>
-            </tr>
-        </table>
-        <p><input type="submit" name="save-changes" value="Save"/></p>
-    </form>
+    <div class="user-edit" style="width: max-content;">
+        <form method="POST" action="/user{user_path_id}">
+            <table class="content-table">
+                <tr class="header">
+                    <td>ID</td>
+                    <td>{user.id}</td>
+                </tr>
+                <tr>
+                    <td>Username</td>
+                    <td><input name="name" value="{escape(user.name)}"/></td>
+                </tr>
+                <tr>
+                    <td>Password</td>
+                    <td><input name="password" type="password" value=""/></td>
+                </tr>
+                <tr>
+                    <td><label for="is-admin-chkbsk">Is admin</label></td>
+                    <td><input id="is-admin-chkbsk" type="checkbox" {only_admin} {checked_admin} name="is_admin"/></td>
+                </tr>
+            </table>
+            <p><input type="submit" name="save-changes" value="Save"/></p>
+        </form>
+    </div>
     <p>{escape(error_msg)}</p>
     '''
 

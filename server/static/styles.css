@@ -176,14 +176,14 @@ a {
 }
 
 
-.login-panel span {
-    display: block;
+.login-panel, .user-edit {
+    width: max-content;
 }
 
 
-.login-panel input {
+.login-panel input, .user-edit input {
     display: block;
-    margin-bottom: 12px;
+    margin: 5px;
 }
 
 

@@ -13,54 +13,6 @@ body {
     background-color: rgb(149, 175, 255);
 }
 
-.content-table td {
-    background-color: rgb(185, 209, 255);
-}
-
-.content-table tr:nth-child(2n) td {
-    background-color: rgb(158, 192, 255);
-}
-
-.content-table tr:hover td {
-    background-color: rgb(175, 200, 255);
-}
-
-
-
-.content-table tbody tr:last-child, .content-table thead tr:last-child th:first-child {
-    border-top-left-radius: 10px;
-}
-
-.content-table tbody tr:last-child, .content-table thead tr:last-child th:last-child {
-    border-top-right-radius: 10px;
-}
-
-
-.content-table tbody tr:last-child, .content-table tbody tr:last-child td:first-child {
-    border-bottom-left-radius: 10px;
-}
-
-.content-table tbody tr:last-child, .content-table tbody tr:last-child td:last-child {
-    border-bottom-right-radius: 10px;
-}
-
-
-
-body {
-      background-image: radial-gradient(circle at right bottom, rgb(204, 244, 255), rgb(183, 239, 255), rgb(94, 204, 255));
-}
-
-.content-table,
-.content-table tr,
-.content-table tr td,
-.content-table tr th {
-    border-style: none;
-}
-
-.content-table th {
-    background-color: rgb(149, 175, 255);
-}
-
 .content-table th:hover {
     background-color: rgb(130, 130, 250);
 }
@@ -80,20 +32,20 @@ body {
 
 
 
-.content-table tbody tr:last-child, .content-table thead tr:last-child th:first-child {
+.content-table tr:last-child, .content-table th:first-child, .content-table .header td:first-child {
     border-top-left-radius: 10px;
 }
 
-.content-table tbody tr:last-child, .content-table thead tr:last-child th:last-child {
+.content-table tr:last-child, .content-table th:last-child, .content-table .header td:last-child {
     border-top-right-radius: 10px;
 }
 
 
-.content-table tbody tr:last-child, .content-table tbody tr:last-child td:first-child {
+.content-table tr:last-child, .content-table tr:last-child td:first-child {
     border-bottom-left-radius: 10px;
 }
 
-.content-table tbody tr:last-child, .content-table tbody tr:last-child td:last-child {
+.content-table tr:last-child, .content-table tr:last-child td:last-child {
     border-bottom-right-radius: 10px;
 }
 

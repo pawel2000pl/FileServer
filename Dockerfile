@@ -19,7 +19,8 @@ WORKDIR /app/server
 
 ENV USER=1000
 RUN adduser --disabled-password --gecos "" --uid $USER -G www-data www-data
-RUN chown -R www-data:www-data /var/lib/nginx /var/log/nginx/ /run
+RUN mkdir -p /tmp/flask_sessions
+RUN chown -R www-data:www-data /var/lib/nginx /var/log/nginx/ /run /tmp/flask_sessions
 USER www-data
 
 EXPOSE 80

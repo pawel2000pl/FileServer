@@ -27,11 +27,20 @@ def render_loginpage(fail) -> Iterator[str]:
     yield """
         <div class="login-panel">
             <form action="/login" method="POST">
-                <span>Username</span>
-                <input type="text" name="username"/>
-                <span>Password</span>
-                <input type="password" name="password"/>
-                <input type="submit" name="login" value="login"/>
+                <table class="content-table">
+                    <tr class="header">
+                        <td>Username</td>
+                        <td><input type="text" name="username"/></td>
+                    </tr>
+                    <tr>
+                        <td>Password</td>
+                        <td><input type="password" name="password"/></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td><input type="submit" name="login" value="Login"/></td>
+                    </tr>
+                </table>
             </form>
         </div>
     """
