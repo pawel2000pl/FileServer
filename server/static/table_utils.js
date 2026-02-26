@@ -23,7 +23,7 @@ function makeDynamicTable(table) {
             if (row.visible)
                 tbody.appendChild(row);
         });
-    }
+    };
 
     const sortRows = (column, reverse) => {
         localStorage.setItem(tableId, JSON.stringify({column, reverse}));

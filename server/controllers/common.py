@@ -19,7 +19,7 @@ if INCLUDE_STATIC:
 
 
 def minify(s : str) -> str:
-    return MINIFIER.sub('', s).replace('\n', ' ')
+    return MINIFIER.sub('', s)
 
 
 def format_date_and_time(timestamp):
