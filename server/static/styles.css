@@ -198,3 +198,12 @@ a {
     margin-top: 0px;
     position: absolute;
 }
+
+.files-legend {
+    display: block;
+    margin: 12px;
+}
+
+.files-legend ul {
+    margin-top: 2px;
+}

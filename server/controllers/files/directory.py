@@ -54,14 +54,14 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
         <div class="fileslist-summary">
             Total: {count} elements.
         </div>
-        <p>
-            <p>Legend</p>
+        <div class="files-legend">
+            <span>Legend</span>
             <ul>
                 <li>F - file</li>
                 <li>D - directory</li>
                 <li>L - link (shortcut)</li>
             </ul>
-        </p>
+        </div>
     </div>
     '''
 

@@ -1,8 +1,26 @@
+import re
 import flask
 from models import User
 from html import escape
 from typing import Union
 from datetime import datetime
+from configuration import STATIC_PATH, INCLUDE_STATIC
+
+STYLES_CONTENT = ''
+STYLES_COLORS_CONTENT = ''
+TABLES_UTILS_CONTENT = ''
+
+MINIFIER = re.compile(r'(^\s+)|(\s+$)', flags=re.MULTILINE)
+
+if INCLUDE_STATIC:
+    STYLES_CONTENT = open(STATIC_PATH + 'styles.css').read() + ''
+    STYLES_COLORS_CONTENT = open(STATIC_PATH + 'colors.css').read()
+    TABLES_UTILS_CONTENT = open(STATIC_PATH + 'table_utils.js').read()
+
+
+def minify(s : str) -> str:
+    return MINIFIER.sub('', s).replace('\n', ' ')
+
 
 def format_date_and_time(timestamp):
     dt = datetime.fromtimestamp(timestamp)
@@ -59,7 +77,7 @@ def render_menu():
     if user and user.is_admin:
         yield '''
         <table class="content-table menu-section">
-            <thead><tr><th>Administration</h3>
+            <thead><tr><th>Administration</th></tr>
             <tbody>
                 <tr><td><a href="/users">Users</a></td></tr>
                 <tr><td><a href="/shared_all">All shares</a></td></tr>
@@ -70,7 +88,7 @@ def render_menu():
     if user is None:
         yield f'''
         <table class="content-table menu-section">
-            <thead><tr><th>Account</h3>
+            <thead><tr><th>Account</th></tr>
             <tbody>
                 <tr><td><a href='/login'>Login</a></td></tr>
             </tbody>
@@ -79,7 +97,7 @@ def render_menu():
     else:
         yield f'''
         <table class="content-table menu-section">
-            <thead><tr><th>Account</h3>
+            <thead><tr><th>Account</th></tr>
             <tbody>
                 <tr><td><a href='/user/{user.id}'>Edit</a></td></tr>
                 <tr><td><a href='/logout'>Logut</a></td></tr>
@@ -88,7 +106,7 @@ def render_menu():
         '''
 
 
-def render_page(content_factory):
+def __render_page(content_factory):
 
     header_generator = render_header()
     menu_generator = render_menu()
@@ -97,8 +115,18 @@ def render_page(content_factory):
     <!DOCTYPE HTML>
     <html>
         <head>
-            <link rel="stylesheet" href="/static/styles.css" />
-            <link rel="stylesheet" href="/static/colors.css" />
+    '''
+
+    if INCLUDE_STATIC:
+        yield '<style>'
+        yield STYLES_CONTENT
+        yield STYLES_COLORS_CONTENT
+        yield '</style>'
+    else:
+        yield '<link rel="stylesheet" href="/static/styles.css" />'
+        yield '<link rel="stylesheet" href="/static/colors.css" />'
+
+    yield '''
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta charset="UTF-8" />
         </head>
@@ -131,8 +159,18 @@ def render_page(content_factory):
 
     yield '</div>'
 
-    yield '''
-        <script src="/static/table_utils.js" defer></script>
+    if INCLUDE_STATIC:
+        yield '<script>'
+        yield TABLES_UTILS_CONTENT
+        yield '</script>'
+    else:
+        yield '<script src="/static/table_utils.js" defer></script>'
+
+    yield f'''
         </body>
     </html>
     '''
+
+
+def render_page(content_factory):
+    return map(minify, __render_page(content_factory))
