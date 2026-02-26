@@ -13,14 +13,15 @@ RUN cp /app/deploy/nginx.conf /etc/nginx/
 RUN cp /app/deploy/sites.conf /etc/nginx/sites-available/fileserver.conf
 RUN ln -s /etc/nginx/sites-available/fileserver.conf /etc/nginx/sites-enabled/fileserver.conf
 
-COPY server /app/server
-RUN chmod -R ugo+r /app
-WORKDIR /app/server
-
 ENV USER=1000
 RUN adduser --disabled-password --gecos "" --uid $USER -G www-data www-data
 RUN mkdir -p /tmp/flask_sessions
 RUN chown -R www-data:www-data /var/lib/nginx /var/log/nginx/ /run /tmp/flask_sessions
+
+COPY server /app/server
+RUN chmod -R ugo+r /app
+WORKDIR /app/server
+
 USER www-data
 
 EXPOSE 80
