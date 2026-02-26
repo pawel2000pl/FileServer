@@ -220,7 +220,7 @@ class Model:
 
 
     def __str__(self):
-        return self.__class__.__name__ + ':\n'+str().join(['\t'+col+': '+repr(self.__data[col])+'\n' for col in self.get_columns()])
+        return self.__class__.__name__ + ':\n'+str().join(['\t'+col+': '+repr(self.__data.get(col, None))+'\n' for col in self.get_columns()])
 
 
     def __repr__(self):

@@ -8,9 +8,10 @@ from urllib.parse import quote
 from typing import Optional, Iterator
 from controllers.common import render_page
 from libraries.storage import StorageEntry
+from configuration import MINIMUM_TOKEN_LENGTH
 
 
-def render_shared_table(only_shared_with_me: bool, only_shared_by_me: bool, only_id: Optional[int] = None) -> Iterator[str]:
+def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, only_shared_by_me: bool, only_id: Optional[int] = None) -> Iterator[str]:
     user_id = flask.session.get('user_id')
     if user_id is None: raise PermissionError()
     user = models.User(id=user_id)
@@ -22,6 +23,8 @@ def render_shared_table(only_shared_with_me: bool, only_shared_by_me: bool, only
         query.where_in_query('depends_on', models.Capability.query().where('user', user))
     if only_id is not None:
         query.where('id', only_id)
+    if require_depends_on:
+        query.where_not_null('depends_on')
 
     yield '''
     <p class="share-manual">
@@ -88,15 +91,25 @@ def render_create_share_for(storage_entry: StorageEntry) -> Iterator[str]:
     allowed_paths = ['/'.join(splitted_path[:i+1]) for i in range(len(splitted_path))]
     capability = models.Capability.query().where('user', user).where_in('storage_path', allowed_paths).order('write', 'DESC').get_one()
     assert capability is not None
+    entry_name = storage_entry.get_name() if storage_entry.has_name() else 'Unnamed'
     rest_of_path = storage_path[len(capability.storage_path)+1:]
+    users_on_list = models.User.query().where('show_in_share_list').where_not('id', user_id).get()
+    yield '<datalist id="users-datalist">'
+    for s_user in users_on_list:
+        yield f'<option value="{escape(s_user.name)}">'
+    yield '</datalist>'
     yield f'''
     <span onclick="share_panel.showModal()" class="share-button">Share</span>
     <dialog id="share_panel" class="share-panel">
         <form action="/create_share" method="post">
             <span class="close-share-btn" onclick="share_panel.close()">Close</span>
             <p>
+                <span>Share name</span><br>
+                <input name="share-name" value="{escape(entry_name)}"/>
+            </p>
+            <p>
                 <span>Username</span><br>
-                <input name="username"/>
+                <input name="username" list="users-datalist" placeholder="ignore for token"/>
             </p>
             <p>
                 <input id="share_with_writing" type="checkbox" {write_disabled}/>
@@ -125,6 +138,7 @@ def create_share() -> Iterator[str]:
             if part in {'..', '.', '~'}: raise PermissionError()
         capability_id = int(flask.request.form['capability_id'])
         username = flask.request.form.get('username', '')
+        share_name = flask.request.form.get('share-name', '')
         share_with_writing = bool(flask.request.form.get('share_with_writing', False))
         share_user = flask.request.form.get('share_user', False)
         share_token = flask.request.form.get('share_token', False)
@@ -134,7 +148,7 @@ def create_share() -> Iterator[str]:
 
         capability = models.Capability(id=capability_id)
         if capability.user.id != user.id: raise PermissionError()
-        if not capability.write and share_with_writing: raise ValueError()
+        if not capability.write and share_with_writing: raise PermissionError()
 
         user2 = models.User.query().where('name', username).get_one()
         if share_user and user2 is None:
@@ -146,15 +160,28 @@ def create_share() -> Iterator[str]:
         new_capability.storage_path = os.sep.join([capability.storage_path, rest_of_path])
         new_capability.depends_on = capability
         new_capability.write = share_with_writing
-        new_capability.name = new_capability.storage_path.split(os.sep)[-1]
+        new_capability.name = share_name if len(share_name) else  new_capability.storage_path.split(os.sep)[-1]
         if share_user:
             assert user2 is not None
             new_capability.user = user2
         if share_token:
-            new_capability.token = base64.b32encode(open('/dev/urandom', 'rb').read(32)).decode('utf-8')
-        new_capability.persist()
+            buflen = MINIMUM_TOKEN_LENGTH
+            rand = open('/dev/urandom', 'rb')
+            while buflen < 64:
+                token_str = base64.b64encode(rand.read(buflen)).decode('utf-8').replace('/', '').replace('+', '').replace('=', '')
+                if len(token_str) >= MINIMUM_TOKEN_LENGTH and models.Capability.query().where('token', token_str).get_one() is None:
+                    new_capability.token = token_str
+                    break
+                buflen += 1
 
-        for s in render_shared_table(False, True, new_capability.id):
+        similar = new_capability.find_similar()
+        if similar is None:
+            new_capability.persist()
+        else:
+            new_capability = similar
+            yield '<p>This share has already exist</p>'
+
+        for s in render_shared_table(False, False, True, new_capability.id):
             yield s
         yield return_a
 
@@ -166,6 +193,6 @@ def render_create_share() -> Iterator[str]:
     return render_page(create_share())
 
 
-def render_shares(only_shared_with_me: bool, only_shared_by_me: bool) -> Iterator[str]:
-    return render_page(render_shared_table(only_shared_with_me, only_shared_by_me))
+def render_shares(only_shared_with_me: bool, require_depends_on: bool, only_shared_by_me: bool) -> Iterator[str]:
+    return render_page(render_shared_table(only_shared_with_me, require_depends_on, only_shared_by_me))
 

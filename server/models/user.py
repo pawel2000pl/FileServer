@@ -10,6 +10,7 @@ class User(MainDatabaseModel):
     name: str
     password: str
     is_admin: bool = False
+    show_in_share_list: bool = True
 
     not_null = ['is_admin']
     unique_index = ['name']

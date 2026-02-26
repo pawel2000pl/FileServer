@@ -2,7 +2,7 @@ import os
 import models
 import liteorm
 from models import MainDatabaseModel
-from typing import Optional, Union, Literal, Collection
+from typing import Optional, Union, Literal, Collection, Self
 
 
 
@@ -21,12 +21,23 @@ class Capability(MainDatabaseModel):
     not_null = ['storage_path']
 
 
+    def find_similar(self) -> Optional[Self]:
+        if self.user is None: return None
+        query = self.query()
+        query.where('user', self.user)
+        query.where('depends_on', self.depends_on)
+        query.where('storage_path', self.storage_path)
+        if self.write:
+            query.where('write')
+        return query.get_one()
+
+
     def before_persist(self):
         assert self.user is None or self.token is None
         assert self.storage_path is not None
         assert len(self.storage_path) > 0
-        while self.storage_path.startswith(os.sep): self.storage_path[1:]
-        while self.storage_path.endswith(os.sep): self.storage_path[:-1]
+        while self.storage_path.startswith(os.sep): self.storage_path = self.storage_path[1:]
+        while self.storage_path.endswith(os.sep): self.storage_path = self.storage_path[:-1]
         if self.depends_on is not None:
             dependence = self.depends_on
             self.write = self.write and dependence.write

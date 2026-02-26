@@ -13,6 +13,7 @@ def render_users_table():
                 <tr>
                     <th class="dynamic">id</th>
                     <th class="main-column dynamic">Name</th>
+                    <th class="dynamic">show in share list</th>
                     <th class="dynamic">is admin</th>
                 </tr>
             </thead>
@@ -24,6 +25,7 @@ def render_users_table():
             <tr>
                 <td>{user.id}</td>
                 <td class="main-column"><a href="/user/{user.id}">{escape(user.name)}</a></td>
+                <td>{user.show_in_share_list}</td>
                 <td>{user.is_admin}</td>
             </tr>
         '''
@@ -57,6 +59,7 @@ def render_user_edit(user_id: Optional[int]):
                 user.name = flask.request.form['name']
             if 'password' in flask.request.form and flask.request.form['password'] != '':
                 user.set_password_hash(flask.request.form['password'])
+            user.show_in_share_list = 'show_in_share_list' in flask.request.form
             if logged_user.is_admin:
                 if 'is_admin' in flask.request.form:
                     user.is_admin = True
@@ -72,6 +75,7 @@ def render_user_edit(user_id: Optional[int]):
     only_admin = '' if logged_user.is_admin else 'disabled="disabled"'
     user_path_id = '' if user_id is None else '/'+str(user.id)
     checked_admin = 'checked="checked"' if user.is_admin else ''
+    checked_show_in_share_list = 'checked="checked"' if user.show_in_share_list else ''
 
     yield f'''
     <div class="user-edit" style="width: max-content;">
@@ -88,6 +92,10 @@ def render_user_edit(user_id: Optional[int]):
                 <tr>
                     <td>Password</td>
                     <td><input name="password" type="password" value=""/></td>
+                </tr>
+                <tr>
+                    <td><label for="show-in-share-list">Show in share list</label></td>
+                    <td><input id="show-in-share-list" type="checkbox" {checked_show_in_share_list} name="show_in_share_list"/></td>
                 </tr>
                 <tr>
                     <td><label for="is-admin-chkbsk">Is admin</label></td>

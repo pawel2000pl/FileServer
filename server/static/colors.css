@@ -1,5 +1,6 @@
 body {
-      background-image: radial-gradient(circle at right bottom, rgb(204, 244, 255), rgb(183, 239, 255), rgb(94, 204, 255));
+    background-image: radial-gradient(circle at right bottom, rgb(204, 244, 255), rgb(183, 239, 255), rgb(94, 204, 255));
+    background-attachment: fixed;
 }
 
 .content-table,

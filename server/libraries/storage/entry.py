@@ -6,6 +6,7 @@ from libraries.file_view import FileView
 from typing import Optional, Iterator, Union
 from configuration import ALLOW_LINKS, BACKUP_PREFIX, SHOW_BACKUPS_IN_FILES
 
+
 class StorageEntry:
 
     def __init__(self, parent: Optional['StorageEntry'], urlpath: list[str]):
@@ -16,7 +17,7 @@ class StorageEntry:
         self.__file_view: Optional[FileView] = None
         self.__cached_url: Optional[str] = None
 
-
+    
     def get_name(self) -> str:
         if not self.has_name():
             raise PermissionError()

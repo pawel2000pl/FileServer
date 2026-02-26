@@ -34,7 +34,7 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
         type_str = ''
         if entry.is_file(): type_str += 'F'
         if entry.is_dir(): type_str += 'D'
-        if entry.is_symlink(): type_str += 'S'
+        if entry.is_symlink(): type_str += 'L'
         stat = entry.stat()
         count += 1
         full_url = base_url + '/' + quote(entry.name)

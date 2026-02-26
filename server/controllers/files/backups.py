@@ -31,7 +31,7 @@ def render_backups(storage_entry: StorageEntry) -> Iterator[str]:
         view = entry.get_file_view()
         if view.is_file(): type_str += 'F'
         if view.is_dir(): type_str += 'D'
-        if view.is_symlink(): type_str += 'S'
+        if view.is_symlink(): type_str += 'L'
         stat = view.stat()
         count += 1
         url_str = entry.generate_url()
