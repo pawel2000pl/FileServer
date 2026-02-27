@@ -167,4 +167,4 @@ headers.txt
 *.sqlite3
 
 storage/*
-deploy/cert/*
+cert/*

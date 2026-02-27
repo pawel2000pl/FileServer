@@ -18,6 +18,7 @@ RUN adduser --disabled-password --gecos "" --uid $USER -G www-data www-data
 RUN mkdir -p /tmp/flask_sessions
 RUN chown -R www-data:www-data /var/lib/nginx /var/log/nginx/ /run /tmp/flask_sessions
 
+COPY cert /app/cert
 COPY server /app/server
 RUN chmod -R ugo+r /app
 WORKDIR /app/server

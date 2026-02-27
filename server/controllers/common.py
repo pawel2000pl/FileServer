@@ -1,5 +1,5 @@
-import re
 import flask
+import base64
 from models import User
 from html import escape
 from typing import Union
@@ -9,17 +9,14 @@ from configuration import STATIC_PATH, INCLUDE_STATIC
 STYLES_CONTENT = ''
 STYLES_COLORS_CONTENT = ''
 TABLES_UTILS_CONTENT = ''
+LOGO_SRC = '/static/favicon.svg'
 
-MINIFIER = re.compile(r'(^\s+)|(\s+$)', flags=re.MULTILINE)
 
 if INCLUDE_STATIC:
     STYLES_CONTENT = open(STATIC_PATH + 'styles.css').read() + ''
     STYLES_COLORS_CONTENT = open(STATIC_PATH + 'colors.css').read()
     TABLES_UTILS_CONTENT = open(STATIC_PATH + 'table_utils.js').read()
-
-
-def minify(s : str) -> str:
-    return MINIFIER.sub('', s)
+    LOGO_SRC = 'data:image/svg+xml;base64,'+base64.b64encode(open(STATIC_PATH + 'favicon.svg', 'rb').read()).decode('utf-8')
 
 
 def format_date_and_time(timestamp):
@@ -106,7 +103,7 @@ def render_menu():
         '''
 
 
-def __render_page(content_factory):
+def render_page(content_factory):
 
     header_generator = render_header()
     menu_generator = render_menu()
@@ -135,9 +132,9 @@ def __render_page(content_factory):
 
     yield '<div class="container">'
 
-    yield '''
+    yield f'''
         <div class="cell logo-cell">
-            <img src="/static/favicon.svg" alt="logo"/>
+            <img src="{LOGO_SRC}" alt="logo"/>
             <span>File server</span>
         </div>
         '''
@@ -171,6 +168,3 @@ def __render_page(content_factory):
     </html>
     '''
 
-
-def render_page(content_factory):
-    return map(minify, __render_page(content_factory))

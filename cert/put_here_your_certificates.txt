@@ -1,0 +1,4 @@
+They should be named:
+root-key.pem and root.pem
+
+In case of other names, change pathes in nginx configuration.
