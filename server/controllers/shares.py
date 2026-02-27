@@ -34,37 +34,49 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
 
     yield '''
     <div class="section-div sharedlist-div">
-        <table id="shares-table" class="content-table dynamic-table shared-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th class="dynamic">Name</th>
-                    <th class="dynamic">Shared by</th>
-                    <th class="dynamic">Shared with user / token</th>
-                    <th class="dynamic">Share method</th>
-                    <th class="dynamic">Write</th>
-                </tr>
-            </thead>
-            <tbody>
+        <form action="#" method="POST">
+            <table id="shares-table" class="content-table dynamic-table shared-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th class="dynamic">Name</th>
+                        <th class="dynamic">Shared by</th>
+                        <th class="dynamic">Shared with user / token</th>
+                        <th class="dynamic">Share method</th>
+                        <th class="dynamic">Write</th>
+                    </tr>
+                </thead>
+                <tbody>
     '''
 
+    deleting_mode = flask.request.method == 'POST' and 'delete-btn' in flask.request.form and 'confirm-delete' in flask.request.form
+
     for capability in query.get():
+
+        checkbox_name = 'share_%d'%capability.id
+        if deleting_mode and checkbox_name in flask.request.form:
+            for subcap in capability.get_recursive_by('id', 'depends_on', True):
+                subcap.delete()
+            continue
+
         shared_by = '' if capability.depends_on is None else capability.depends_on.user.name
         shared_method: str
         shared_with: str
         url = ''
-        if capability.token is None:
+        if capability.user is not None:
             shared_method = 'for user'
             shared_with = capability.user.name
             url = '/userfile/'+quote(shared_with)+'/'+quote(capability.name)
-        else:
+        elif capability.token is not None:
             shared_method = 'token'
             shared_with = capability.token
             url = '/tokenfile/'+quote(shared_with)
+        else:
+            raise NotImplementedError()
         if capability.name is None: capability.name = 'Unnamed'
         yield f'''
             <tr>
-                <td><input type="checkbox" name="share[]" value="{capability.id}"</td>
+                <td><input type="checkbox" name="{checkbox_name}"/></td>
                 <td><a href="{escape(url)}">{escape(capability.name)}</a></td>
                 <td>{escape(shared_by)}</td>
                 <td><a href="{escape(url)}">{escape(shared_with)}</a></td>
@@ -74,10 +86,18 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
         '''
 
     yield '''
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+            <p>
+                <input id="confirm-delete" type="checkbox" name="confirm-delete" required/>
+                <label for="confirm-delete">Confirm deleting</label>
+                <br>
+                <input type="submit" name="delete-btn" value="Delete"/>
+            </p>
+        </form>
     </div>
     '''
+
 
 
 def render_create_share_for(storage_entry: StorageEntry) -> Iterator[str]:

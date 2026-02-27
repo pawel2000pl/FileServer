@@ -154,13 +154,13 @@ class Model:
         return cls.default_values.get(column, None)
 
 
-    def duplicate(self):
+    def duplicate(self) -> Self:
         data = self.__data.copy()
         data.pop(self.primary_key)
         return self.__class__(**data)
 
 
-    def fill(self, data: Union[dict, tuple]):
+    def fill(self, data: Union[dict, tuple]) -> Self:
         if isinstance(data, dict):
             for col, val in data.items():
                 if col in self.__annotations__:
@@ -219,17 +219,17 @@ class Model:
         return self.set_value(name, value)
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__class__.__name__ + ':\n'+str().join(['\t'+col+': '+repr(self.__data.get(col, None))+'\n' for col in self.get_columns()])
 
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__class__.__name__ + '('+', '.join([str(col)+'='+repr(self.__data.get(col, None)) for col in self.get_columns()])+')'
 
 
     def get_recursive_by(self, column: str, key_column: Union[str, None] = None, include_self : bool = True) -> Iterator[Self]:
         assert column in self.__annotations__
-        assert self.__annotations__[column] == self.__class__
+        assert self.__annotations__[column] == self.__class__ or self.primary_key == column
         if key_column is None: key_column = self.primary_key
         assert key_column in self.__annotations__
         assert key_column != column
@@ -247,7 +247,7 @@ class Model:
 
 
     @classmethod
-    def add_cache(cls, record: tuple):
+    def add_cache(cls, record: tuple) -> Type[Self]:
         assert isinstance(record, tuple)
         assert len(record) == len(cls.__annotations__)
         if cls.cache_size > 0:
@@ -312,9 +312,11 @@ class Model:
 
     def delete(self, cursor=None):
         cursor = self.database.get_cursor(cursor)
-        cursor.execute(f'DELETE FROM {self.table_name} WHERE {self.primary_key} = ?', self.get_pk_val())
+        cursor.execute(f'DELETE FROM {self.table_name} WHERE {self.primary_key} = ?', [self.get_pk_val()])        
+        if self.database.autocommit:
+            self.database.commit()
         self.invalidate_cache()
-        return connection
+        return cursor.connection
 
 
     def modified(self) -> bool:
@@ -411,13 +413,13 @@ class Model:
         }
         if name == cls.primary_key:
             return f'{name} INTEGER PRIMARY KEY AUTOINCREMENT'
-        elif issubclass(dtype, Model):
-            default_value = cls.__simple_escape(cls.get_default_value(name))
-            default_sql = '' if default_value == 'NULL' else 'DEFAULT ' + default_value
-            not_null_sql = 'NOT NULL' if name in cls.__not_null_set else ''
+        default_value = cls.__simple_escape(cls.get_default_value(name))
+        default_sql = '' if default_value == 'NULL' else 'DEFAULT ' + default_value
+        not_null_sql = 'NOT NULL' if name in cls.__not_null_set else ''
+        if issubclass(dtype, Model):
             return f'{name} INTEGER {not_null_sql} {default_sql} REFERENCES {dtype.table_name}({dtype.primary_key})'
         else:
-            return f'{name} {TYPE_MAP.get(dtype.__name__, dtype.__name__).upper()}'
+            return f'{name} {TYPE_MAP.get(dtype.__name__, dtype.__name__).upper()} {not_null_sql} {default_sql}'
 
 
     @classmethod

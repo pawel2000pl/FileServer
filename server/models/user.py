@@ -11,8 +11,9 @@ class User(MainDatabaseModel):
     password: str
     is_admin: bool = False
     show_in_share_list: bool = True
+    active: bool = True
 
-    not_null = ['is_admin']
+    not_null = ['is_admin', 'active']
     unique_index = ['name']
 
 
@@ -34,4 +35,4 @@ class User(MainDatabaseModel):
 
 
     def check_password_hash(self, password_text):
-        return bcrypt.checkpw(password_text.encode('utf-8'), self.password.encode('utf-8'))
+        return self.active and bcrypt.checkpw(password_text.encode('utf-8'), self.password.encode('utf-8'))
