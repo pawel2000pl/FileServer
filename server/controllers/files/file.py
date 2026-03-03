@@ -20,6 +20,8 @@ def render_file(storage_entry: StorageEntry) -> Iterator[str]:
     yield f'<span class="size-span">File size: {format_size(stat.st_size)}</span><br>'
     yield f'<span class="mime-span">File type: {mime}</span><br>'
 
+    preload = 'preload="auto"' if stat.st_size <= configuration.LAZY_LOADING_SIZE else 'preload="none"'
+
     show_new_tab_link = True
     if mime.startswith('text/') or mime == 'application/json' or mime == 'application/xml':
         yield '<textarea class="preview" readonly="readonly">'
@@ -32,9 +34,9 @@ def render_file(storage_entry: StorageEntry) -> Iterator[str]:
     elif mime.startswith('image/'):
         yield f'<image class="preview" src="{download_url}" alt="Cannot load the image"/>'
     elif mime.startswith('audio/'):
-        yield f'<audio class="preview" controls src="{download_url}"></audio>'
+        yield f'<audio {preload} class="preview" controls src="{download_url}"></audio>'
     elif mime.startswith('video/'):
-        yield f'<video class="preview" controls src="{download_url}"></video>'
+        yield f'<video {preload} class="preview" controls src="{download_url}"></video>'
     else:
         show_new_tab_link = False
     if show_new_tab_link:

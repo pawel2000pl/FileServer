@@ -1,5 +1,8 @@
 import os
+import shutil
+import datetime
 import configuration
+from time import time
 from os import DirEntry
 from urllib.parse import quote
 from libraries.file_view import FileView
@@ -9,12 +12,14 @@ from configuration import ALLOW_LINKS, BACKUP_PREFIX, SHOW_BACKUPS_IN_FILES
 
 class StorageEntry:
 
-    def __init__(self, parent: Optional['StorageEntry'], urlpath: list[str]):
+    def __init__(self, parent: Optional['StorageEntry'], urlpath: list[str], **kwargs):
         self.parent = parent
         self.urlpath = urlpath
         self.read = False
-        self.write = False
-        self.__file_view: Optional[FileView] = None
+        self.write = False        
+        test_view = kwargs.get('fileview', None) 
+        assert test_view is None or isinstance(test_view, (FileView, DirEntry))
+        self.__file_view: Union[FileView, DirEntry, None] = test_view
         self.__cached_url: Optional[str] = None
 
     
@@ -65,7 +70,7 @@ class StorageEntry:
         return cur
 
 
-    def get_file_view(self) -> FileView:
+    def get_file_view(self) -> Union[FileView, DirEntry]:
         if self.__file_view is None:
             self.__file_view = FileView(self.get_system_path())
         return self.__file_view
@@ -88,27 +93,21 @@ class StorageEntry:
         return configuration.STORAGE_PATH + os.sep + self.get_storage_path()
 
 
-    def get_file_entry(self) -> FileView:
-        if not self.read:
-            raise PermissionError()
-        return FileView(self.get_system_path())
-
-
     def has_entries(self) -> bool:
-        return self.get_file_entry().is_dir()
+        return self.get_file_view().is_dir()
 
 
-    def scan_entries(self) -> Iterator[Union[FileView, DirEntry]]:
+    def scan_entries(self, **kwargs) -> Iterator['StorageEntry']:
         if not self.read:
             raise PermissionError()
         if not self.has_entries():
             raise PermissionError()
-        for entry in os.scandir(self.get_file_entry().__fspath__()):
+        for entry in os.scandir(self.get_file_view().__fspath__()):
             if not ALLOW_LINKS and entry.is_symlink():
                 continue
             if not SHOW_BACKUPS_IN_FILES and entry.name.startswith(BACKUP_PREFIX):
                 continue
-            yield entry
+            yield self.goto(entry.name, fileview=entry, **kwargs)
 
 
     def __scan_backups(self, names_path: list[str], shared_set: set) -> Iterator['StorageEntry']:
@@ -127,21 +126,22 @@ class StorageEntry:
         if len(names_path) > 0:
             for sub in self.goto(names_path[0]).__scan_backups(names_path[1:], shared_set):
                 yield sub
-        for entry in self.scan_entries():
+        for entry in self.scan_entries(promote_to_write=False):
+            view = entry.get_file_view()
             try:
                 if len(names_path) > 0:
-                    if entry.name == names_path[0]:
+                    if view.name == names_path[0]:
                         continue
-                    if not os.path.exists(entry.__fspath__() + os.sep + os.sep.join(names_path)):
+                    if not os.path.exists(view.__fspath__() + os.sep + os.sep.join(names_path)):
                         continue
                 elif self.is_real_file():
-                    if entry.is_dir() != self.get_file_view().is_dir():
+                    if view.is_dir() != self.get_file_view().is_dir():
                         continue
-                    if entry.is_file() != self.get_file_view().is_file():
+                    if view.is_file() != self.get_file_view().is_file():
                         continue
-                if not entry.name.startswith(configuration.BACKUP_PREFIX):
+                if not view.name.startswith(configuration.BACKUP_PREFIX):
                     continue
-                for sub in self.goto(entry.name).__scan_backups(names_path, shared_set):
+                for sub in self.goto(entry.get_name()).__scan_backups(names_path, shared_set):
                     yield sub
             except (PermissionError, FileNotFoundError):
                 pass
@@ -167,7 +167,67 @@ class StorageEntry:
         raise NotImplementedError()
 
 
-    def goto(self, name: str) -> 'StorageEntry':
-        if not self.read:
-            raise PermissionError()
+    def entry_exists(self, name: str) -> bool:
+        try:
+            self.goto(name)
+            return True
+        except FileNotFoundError:
+            return False
+
+
+    def create_dir_entry(self, name: str):
+        os.mkdir(self.get_storage_path() + os.sep + name)
+
+
+    def make_backup(self, name: str, timestamp: Union[int, float, None] = None, move: bool = True):
+        if not self.write: raise PermissionError()
+        if timestamp is None: timestamp = time()
+        source = self.goto(name).get_system_path()
+        path = []
+        backup_entry = self
+        while backup_entry.has_name() and backup_entry.parent is not None and backup_entry.parent.write:
+            path.append(backup_entry.get_name())
+            backup_entry = backup_entry.parent
+        path.append(configuration.BACKUP_PREFIX + datetime.datetime.fromtimestamp(timestamp).now().strftime('%Y%m%d%H%M%S%f'))
+        path.reverse()
+        for subname in path:
+            try:
+                i = 1
+                while True:
+                    try_name = "%s_%i" % (subname, i) if i > 1 else subname
+                    test_backup_entry = backup_entry.goto(try_name)
+                    if test_backup_entry.has_entries():
+                        backup_entry = test_backup_entry
+                        break    
+            except FileNotFoundError:
+                backup_entry.create_dir_entry(subname)
+                backup_entry = backup_entry.goto(subname)
+        destination = backup_entry.get_system_path() + os.sep + name
+        if move:
+            shutil.move(source, destination)
+        else:
+            if os.path.isdir(source):
+                shutil.copytree(source, destination)
+            else:
+                shutil.copyfile(source, destination)
+
+
+    def add_entry(self, name: str, source: str, timestamp: Union[int, float, None] = None):
+        if not self.write: raise PermissionError()
+        if not self.has_entries(): raise PermissionError()
+        try:
+            self.make_backup(name, timestamp, move=True)
+        except (FileNotFoundError, PermissionError):
+            pass
+        shutil.move(source, self.get_file_view().__fspath__()+os.sep+name)
+        raise NotImplementedError()
+
+
+    def remove_entry(self, name: str, timestamp: Union[int, float, None] = None):
+        if not self.write: raise PermissionError()
+        self.make_backup(name, timestamp, move=True)
+
+
+    def goto(self, name: str, **kwargs) -> 'StorageEntry':
+        if not self.read: raise PermissionError()
         raise NotImplementedError()

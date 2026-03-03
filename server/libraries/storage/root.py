@@ -7,7 +7,7 @@ class StorageRoot(StorageEntry):
         super().__init__(None, [])
 
 
-    def goto(self, name: str) -> StorageEntry:
+    def goto(self, name: str, **kwargs) -> StorageEntry:
         if name == 'userfile':
             return AccessModeEntry(self, 'userfile')
         if name == 'tokenfile':

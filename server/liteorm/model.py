@@ -287,11 +287,14 @@ class Model:
 
 
     def exists(self, cursor=None) -> bool:
-        pk_val = self.get_pk_val()
-        if pk_val is None:
-            return False
-        cursor = self.database.get_cursor(cursor)
-        cursor.execute(f'SELECT 1 FROM {self.table_name} WHERE {self.primary_key} = ? LIMIT 1', [pk_val])
+        return self.static_exists(self.get_pk_val(), cursor)
+
+
+    @classmethod
+    def static_exists(cls, pk_val: Optional[int], cursor=None) -> bool:
+        if pk_val is None: return False
+        cursor = cls.database.get_cursor(cursor)
+        cursor.execute(f'SELECT 1 FROM {cls.table_name} WHERE {cls.primary_key} = ? LIMIT 1', [pk_val])
         return len(cursor.fetchall()) > 0
 
 
@@ -323,13 +326,13 @@ class Model:
         return self.__modified
 
 
-    def persist(self, cursor = None, force: bool = False) -> None:
+    def persist(self, cursor = None, force: bool = False, commit: Optional[bool] = None) -> None:
         if not (force or self.__modified): return
         cursor = self.database.get_cursor(cursor)
         self.before_persist()
         for col, obj in self.__subobjects.items():
             if obj is None: continue
-            obj.persist(cursor)
+            obj.persist(cursor, commit=False)
             self.__data[col] = obj.get_pk_val()
         if self.get_pk_val() is None:
             self.before_insert()
@@ -343,7 +346,7 @@ class Model:
                     f'INSERT INTO {self.table_name} ({insert_columns_str}) VALUES ({insert_columns_params_str})',
                     [self.__data.get(col, None) for col in insert_columns]
                 )
-            if self.database.autocommit:
+            if (self.database.autocommit if commit is None else commit):
                 self.database.commit()
             self.set_pk_val(cursor.lastrowid)
             self.invalidate_cache()
@@ -357,7 +360,7 @@ class Model:
                 f'UPDATE {self.table_name} SET {update_list_str} WHERE {self.primary_key} = ?',
                 [self.__data.get(col, None) for col in columns_list_no_pk] + [self.get_pk_val()]
             )
-            if self.database.autocommit:
+            if (self.database.autocommit if commit is None else commit):
                 self.database.commit()
             self.invalidate_cache()
             self.after_update()

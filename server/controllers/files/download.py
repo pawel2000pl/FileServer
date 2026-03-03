@@ -75,7 +75,7 @@ def serve_file(system_path: str, filename: str, download: bool = True) -> Respon
 
 
 def download_partial(storage_entry: StorageEntry, download: bool = False) -> ResponseStream:
-    assert storage_entry.get_file_entry().is_file()
+    assert storage_entry.get_file_view().is_file()
     return serve_file(storage_entry.get_system_path(), storage_entry.get_name(), download)
 
 

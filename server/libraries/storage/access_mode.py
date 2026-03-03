@@ -11,7 +11,7 @@ class AccessModeEntry(StorageEntry):
         self.type = storage_type
 
 
-    def goto(self, name: str) -> 'StorageEntry':
+    def goto(self, name: str, **kwargs) -> 'StorageEntry':
         if self.type == 'tokenfile':
             return self.__goto_token(name)
         if self.type == 'userfile':

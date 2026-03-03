@@ -1,20 +1,23 @@
 import os
 import models
+from os import DirEntry
 from typing import Optional
 from configuration import ALLOW_LINKS
+from libraries.file_view import FileView
 from libraries.storage import StorageEntry
 
 
 class TokenEntry(StorageEntry):
 
-    def __init__(self, capability: models.Capability, parent: Optional[StorageEntry], urlpath: list[str]):
+    def __init__(self, capability: models.Capability, parent: Optional[StorageEntry], urlpath: list[str], **kwargs):
         assert len(urlpath) >= 2
-        super().__init__(parent, urlpath)
+        super().__init__(parent, urlpath, **kwargs)
         self.capability = capability
         self.read = True
         self.write = capability.write
-        if not self.get_file_view().exists(): raise FileNotFoundError()
-        if not ALLOW_LINKS and self.get_file_view().is_symlink(): raise PermissionError()
+        view = self.get_file_view()
+        if isinstance(view, FileView) and not view.exists(): raise FileNotFoundError()
+        if not ALLOW_LINKS and view.is_symlink(): raise PermissionError()
 
 
     def get_name(self) -> str:
@@ -23,10 +26,10 @@ class TokenEntry(StorageEntry):
         return super().get_name()
 
 
-    def goto(self, name: str) -> 'StorageEntry':
+    def goto(self, name: str, **kwargs) -> 'StorageEntry':
         if len({'/', '\\', '~', ':'}.intersection(name)): raise PermissionError()
         if name in {'..', '.', '~'}: raise PermissionError()
-        return TokenEntry(self.capability, self, self.urlpath+[name])
+        return TokenEntry(self.capability, self, self.urlpath+[name], **kwargs)
 
 
     def get_storage_path(self) -> str:

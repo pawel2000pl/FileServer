@@ -1,4 +1,5 @@
 import os
+import json
 import flask
 import base64
 import models
@@ -33,6 +34,20 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
     '''
 
     yield '''
+        <dialog id="rename_panel" class="share-panel">
+            <span class="close-share-btn" onclick="rename_panel.close()">Close</span>
+            <form action="#" method="post">
+                <input id="new_name_id" name="cap-id" type="hidden" value="0"/>
+                <p>
+                    <span>New name</span><br>
+                    <input id="new_name_input" name="new-name" value="Unnamed"/>
+                </p>
+                <input type="submit" name="rename-btn" value="Rename"/>
+            </form>
+        </dialog>
+    '''
+
+    yield '''
     <div class="section-div sharedlist-div">
         <form action="#" method="POST">
             <table id="shares-table" class="content-table dynamic-table shared-table">
@@ -40,6 +55,7 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
                     <tr>
                         <th>#</th>
                         <th class="dynamic">Name</th>
+                        <th></th>
                         <th class="dynamic">Shared by</th>
                         <th class="dynamic">Shared with user / token</th>
                         <th class="dynamic">Share method</th>
@@ -49,7 +65,10 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
                 <tbody>
     '''
 
-    deleting_mode = flask.request.method == 'POST' and 'delete-btn' in flask.request.form and 'confirm-delete' in flask.request.form
+    renaming_mode =  flask.request.method == 'POST' and 'rename-btn' in flask.request.form and 'cap-id' in flask.request.form and 'new-name' in flask.request.form
+    deleting_mode = not renaming_mode and flask.request.method == 'POST' and 'delete-btn' in flask.request.form and 'confirm-delete' in flask.request.form
+    rename_id = int(flask.request.form['cap-id']) if renaming_mode else 0
+
 
     for capability in query.get():
 
@@ -58,6 +77,10 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
             for subcap in capability.get_recursive_by('id', 'depends_on', True):
                 subcap.delete()
             continue
+
+        if renaming_mode and capability.id == rename_id and (capability.user.id == user.id or user.is_admin):
+            capability.name = flask.request.form['new-name']
+            capability.persist()
 
         shared_by = '' if capability.depends_on is None else capability.depends_on.user.name
         shared_method: str
@@ -78,6 +101,7 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
             <tr>
                 <td><input type="checkbox" name="{checkbox_name}"/></td>
                 <td><a href="{escape(url)}">{escape(capability.name)}</a></td>
+                <td><span style="cursor: pointer" onclick="new_name_id.value={capability.id};new_name_input.value={escape(json.dumps(capability.name))};rename_panel.showModal()">&#128394;</span></td>
                 <td>{escape(shared_by)}</td>
                 <td><a href="{escape(url)}">{escape(shared_with)}</a></td>
                 <td>{shared_method}</td>
@@ -169,6 +193,12 @@ def create_share() -> Iterator[str]:
         capability = models.Capability(id=capability_id)
         if capability.user.id != user.id: raise PermissionError()
         if not capability.write and share_with_writing: raise PermissionError()
+
+        if username == user.name:
+            yield '<p>You cannot share to yourself</p>'
+            yield return_a
+            return
+
 
         user2 = models.User.query().where('name', username).get_one()
         if share_user and user2 is None:

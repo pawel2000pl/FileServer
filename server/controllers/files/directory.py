@@ -32,16 +32,18 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
 
     for entry in storage_entry.scan_entries():
         type_str = ''
-        if entry.is_file(): type_str += 'F'
-        if entry.is_dir(): type_str += 'D'
-        if entry.is_symlink(): type_str += 'L'
-        stat = entry.stat()
+        name = entry.get_name()
+        view = entry.get_file_view()
+        if view.is_file(): type_str += 'F'
+        if view.is_dir(): type_str += 'D'
+        if view.is_symlink(): type_str += 'L'
+        stat = view.stat()
         count += 1
-        full_url = base_url + '/' + quote(entry.name)
+        full_url = base_url + '/' + quote(name)
         yield f'''
             <tr>
                 <td><input type="checkbox" name="fileentry[]" value="{escape(full_url)}"/></td>
-                <td class="main-column"><a href="{escape(full_url)}">{escape(entry.name)}</a></td>
+                <td class="main-column"><a href="{escape(full_url)}">{escape(name)}</a></td>
                 <td class="only-pc">{escape(format_datetime(stat.st_mtime))}</td>
                 <td class="only-pc" sortkey="{int(stat.st_size)}">{format_size(stat.st_size)}</td>
                 <td class="only-pc">{escape(type_str)}</td>

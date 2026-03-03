@@ -61,7 +61,8 @@ def login(username, password) -> Iterator[str]:
 
 def is_logged_in() -> bool:
     check_cleanup()
-    return flask.session.get('user_id', None) is not None
+    user_id = flask.session.get('user_id', None)
+    return models.User.static_exists(user_id)
 
 
 def require_login(fun):

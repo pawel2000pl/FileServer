@@ -146,6 +146,10 @@ a {
     display: block;
 }
 
+video {
+    background-color: black;
+}
+
 .share-button {
     float: right;
     cursor: pointer;

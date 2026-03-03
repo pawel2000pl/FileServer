@@ -10,29 +10,30 @@ from typing import Optional, Iterator, Union
 
 class UserEntry(StorageEntry):
 
-    def __init__(self, access_user: models.User, capability: Optional[models.Capability], pathuser: models.User, parent: StorageEntry, urlpath: list[str], storage_path: str):
-        super().__init__(parent, urlpath)
+    def __init__(self, access_user: models.User, capability: Optional[models.Capability], pathuser: models.User, parent: StorageEntry, urlpath: list[str], storage_path: str, **kwargs):
+        super().__init__(parent, urlpath, **kwargs)        
         self.storage_path = storage_path
+        view = self.get_file_view()
+        if isinstance(view, FileView) and not view.exists(): raise FileNotFoundError()
+        if not ALLOW_LINKS and view.is_symlink(): raise PermissionError()
         self.access_user = access_user
         self.capability = capability
         self.pathuser = pathuser
         self.read = parent.read or capability is not None and storage_path.startswith(capability.storage_path) and capability.user.id == access_user.id
         self.write = parent.write or (capability is not None and capability.write)
-        if not self.read or not self.write:
+        if not self.read or not self.write and kwargs.get('promote_to_write', True):
             access_capability = models.Capability.query().where('user', access_user).where('storage_path', storage_path).order('write', 'DESC').get_one()
             if access_capability is not None:
                 self.read = True
                 self.write = self.write or access_capability.write
                 self.capability = access_capability
                 self.urlpath = ['userfile', access_user.name, access_capability.name]
-        if not self.get_file_view().exists(): raise FileNotFoundError()
-        if not ALLOW_LINKS and self.get_file_view().is_symlink(): raise PermissionError()
 
 
-    def goto(self, name: str) -> 'StorageEntry':
+    def goto(self, name: str, **kwargs) -> 'StorageEntry':
         if len({'/', '\\', '~', ':'}.intersection(name)): raise PermissionError()
         if name in {'..', '.', '~'}: raise PermissionError()
-        return UserEntry(self.access_user, self.capability, self.pathuser, self, self.urlpath+[name], self.storage_path+os.sep+name)
+        return UserEntry(self.access_user, self.capability, self.pathuser, self, self.urlpath+[name], self.storage_path+os.sep+name, **kwargs)
 
 
     def get_storage_path(self) -> str:
@@ -50,7 +51,7 @@ class UserhomeEntry(StorageEntry):
         self.write = False
 
 
-    def goto(self, name: str) -> 'StorageEntry':
+    def goto(self, name: str, **kwargs) -> 'StorageEntry':
         path_capability = models.Capability.query().where('user', self.pathuser).where('name', name).get_one()
         if path_capability is None: raise FileNotFoundError()
         access_capability: Optional[models.Capability] = path_capability
@@ -64,15 +65,14 @@ class UserhomeEntry(StorageEntry):
         return UserEntry(self.access_user, access_capability, self.pathuser, self, self.urlpath+[name], path_capability.storage_path)
 
 
-    def scan_entries(self) -> Iterator[Union[FileView, DirEntry]]:
+    def scan_entries(self, **kwargs) -> Iterator[StorageEntry]:
         if self.access_user.id != self.pathuser.id:
             raise PermissionError()
         for cap in models.Capability().query().where('user', self.access_user).where_not_null('name').get():
-            yield FileView(configuration.STORAGE_PATH + os.sep + cap.storage_path)
-
-
-    def get_file_entry(self) -> FileView:
-        raise PermissionError()
+            try:
+                yield UserEntry(self.access_user, cap, self.pathuser, self, self.urlpath+[cap.name], cap.storage_path, **kwargs)
+            except PermissionError:
+                continue
 
 
     def has_entries(self) -> bool:
@@ -81,3 +81,4 @@ class UserhomeEntry(StorageEntry):
 
     def can_have_backup(self) -> bool:
         return True
+    

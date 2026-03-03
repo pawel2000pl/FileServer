@@ -84,6 +84,8 @@ def consume_response(rs: ResponseStream) -> flask.Response:
     except liteorm.RecordNotFound:
         logger.error(traceback.format_exc())
         return flask.Response(status=404, response='Not found')
+    except ValueError:
+        return flask.Response(status=400, response='Bad request')
     except Exception as err:
         logger.error(traceback.format_exc())
         return flask.Response(status=500, response='')
