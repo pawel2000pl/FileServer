@@ -35,11 +35,11 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
 
     yield '''
         <dialog id="rename_panel" class="share-panel">
-            <span class="close-share-btn" onclick="rename_panel.close()">Close</span>
+            <span class="close-modal-btn" onclick="rename_panel.close()">Close</span>
             <form action="#" method="post">
                 <input id="new_name_id" name="cap-id" type="hidden" value="0"/>
                 <p>
-                    <span>New name</span><br>
+                    <span>New name</span><br/>
                     <input id="new_name_input" name="new-name" value="Unnamed"/>
                 </p>
                 <input type="submit" name="rename-btn" value="Rename"/>
@@ -115,7 +115,7 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
             <p>
                 <input id="confirm-delete" type="checkbox" name="confirm-delete" required/>
                 <label for="confirm-delete">Confirm deleting</label>
-                <br>
+                <br/>
                 <input type="submit" name="delete-btn" value="Delete"/>
             </p>
         </form>
@@ -143,16 +143,16 @@ def render_create_share_for(storage_entry: StorageEntry) -> Iterator[str]:
         yield f'<option value="{escape(s_user.name)}">'
     yield '</datalist>'
     yield f'''
-    <span onclick="share_panel.showModal()" class="share-button">Share</span>
+    <span onclick="share_panel.showModal()" class="link-like-button">Share</span>
     <dialog id="share_panel" class="share-panel">
         <form action="/create_share" method="post">
-            <span class="close-share-btn" onclick="share_panel.close()">Close</span>
+            <span class="close-modal-btn" onclick="share_panel.close()">Close</span>
             <p>
-                <span>Share name</span><br>
+                <span>Share name</span><br/>
                 <input name="share-name" value="{escape(entry_name)}"/>
             </p>
             <p>
-                <span>Username</span><br>
+                <span>Username</span><br/>
                 <input name="username" list="users-datalist" placeholder="ignore for token"/>
             </p>
             <p>

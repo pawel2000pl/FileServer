@@ -10,10 +10,14 @@ import response_stream
 from libraries.mime import get_mimetype
 
 application = flask.Flask(__name__)
-application.config["SESSION_PERMANENT"] = False
+application.config["SESSION_PERMANENT"] = True
 application.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(seconds=configuration.SESSION_EXPIRES)
 application.config["SESSION_TYPE"] = "filesystem"
 application.config["SESSION_FILE_DIR"] = configuration.SESSION_DIR
+application.config["SESSION_COOKIE_HTTPONLY"] = True
+application.config["SESSION_COOKIE_SAMESITE"] = 'Lax'
+application.config["SESSION_ID_LENGTH"] = 64
+application.config["MAX_FORM_PARTS"] = 16384
 
 
 # Initialize Flask-Session

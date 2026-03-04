@@ -5,7 +5,7 @@ import models
 import server
 import logging
 
-from configuration import DEFAULT_ADMIN_NAME, DEFAULT_ADMIN_PASSWORD, STORAGE_PATH, SESSION_EXPIRES, SESSION_DIR, ALLOW_LINKS
+from configuration import *
 
 logger = logging.getLogger(__name__)
 
@@ -62,3 +62,11 @@ def install_admin():
         logger.warning(f'The default user "{DEFAULT_ADMIN_NAME}" has not been marked as admin')
     admin.persist()
     install_admin_capabilities()
+
+
+def install_dirs():
+    if not os.path.isdir(STORAGE_PATH):
+        os.mkdir(STORAGE_PATH)
+    if not os.path.isdir(UPLOAD_PATH):
+        os.mkdir(UPLOAD_PATH)
+    

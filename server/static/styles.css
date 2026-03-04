@@ -125,10 +125,6 @@ a {
     font-size: small;
 }
 
-.parent-dir-href {
-    display: block;
-}
-
 
 .mime-span {
     display: block;
@@ -150,8 +146,7 @@ video {
     background-color: black;
 }
 
-.share-button {
-    float: right;
+.link-like-button {
     cursor: pointer;
     text-decoration: underline;
 }
@@ -162,15 +157,15 @@ video {
     padding-top: 0px;
 }
 
-.share-panel .close-share-btn {
+.close-modal-btn {
     cursor: pointer;
     float: right;
     opacity: 75%;
 }
 
 .file-tool-panel {
-    float: left;
-    display: block;
+    display: flex;
+    justify-content: space-between;
 }
 
 .share-manual {

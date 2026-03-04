@@ -2,9 +2,9 @@
 
 ## Preparing the environment
 
-First you need to add certificates to the `deploy/cert` directory.<br>
+First you need to add certificates to the `deploy/cert` directory.<br/>
 Then you need to create a `storage` directory.
-To avoid sharing the whole filesystem, you can only create a single directory and create binds in filesystem.<br>
+To avoid sharing the whole filesystem, you can only create a single directory and create binds in filesystem.<br/>
 Example of `fstab` entry for binding a single directory:
 ~~~
 /media/external_storage/source /opt/this_app_storage/name   none   defaults,auto,bind,rw,nofail     0       0

@@ -16,9 +16,9 @@ def render_file(storage_entry: StorageEntry) -> Iterator[str]:
     stat = storage_entry.get_file_view().stat()
 
     yield f'<a class="download-btn" href="{download_url}&save=True">Download</a>'
-    yield f'<span class="modified-span">Modified: {escape(format_datetime(stat.st_mtime))}</span><br>'
-    yield f'<span class="size-span">File size: {format_size(stat.st_size)}</span><br>'
-    yield f'<span class="mime-span">File type: {mime}</span><br>'
+    yield f'<span class="modified-span">Modified: {escape(format_datetime(stat.st_mtime))}</span><br/>'
+    yield f'<span class="size-span">File size: {format_size(stat.st_size)}</span><br/>'
+    yield f'<span class="mime-span">File type: {mime}</span><br/>'
 
     preload = 'preload="auto"' if stat.st_size <= configuration.LAZY_LOADING_SIZE else 'preload="none"'
 

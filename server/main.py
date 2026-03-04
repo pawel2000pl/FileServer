@@ -10,6 +10,7 @@ application = server.application
 
 with application.app_context():
     models.auto_update()
+    installation.install_dirs()
     installation.install_admin()
     installation.delete_expired_sessions()
 

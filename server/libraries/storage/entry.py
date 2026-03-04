@@ -97,7 +97,7 @@ class StorageEntry:
         return self.get_file_view().is_dir()
 
 
-    def scan_entries(self, **kwargs) -> Iterator['StorageEntry']:
+    def scan_entries(self, include_backups=False, **kwargs) -> Iterator['StorageEntry']:
         if not self.read:
             raise PermissionError()
         if not self.has_entries():
@@ -105,7 +105,7 @@ class StorageEntry:
         for entry in os.scandir(self.get_file_view().__fspath__()):
             if not ALLOW_LINKS and entry.is_symlink():
                 continue
-            if not SHOW_BACKUPS_IN_FILES and entry.name.startswith(BACKUP_PREFIX):
+            if not include_backups and not SHOW_BACKUPS_IN_FILES and entry.name.startswith(BACKUP_PREFIX):
                 continue
             yield self.goto(entry.name, fileview=entry, **kwargs)
 
@@ -126,7 +126,7 @@ class StorageEntry:
         if len(names_path) > 0:
             for sub in self.goto(names_path[0]).__scan_backups(names_path[1:], shared_set):
                 yield sub
-        for entry in self.scan_entries(promote_to_write=False):
+        for entry in self.scan_entries(include_backups=True, promote_to_write=False):
             view = entry.get_file_view()
             try:
                 if len(names_path) > 0:
@@ -176,7 +176,7 @@ class StorageEntry:
 
 
     def create_dir_entry(self, name: str):
-        os.mkdir(self.get_storage_path() + os.sep + name)
+        os.mkdir(self.get_system_path() + os.sep + name)
 
 
     def make_backup(self, name: str, timestamp: Union[int, float, None] = None, move: bool = True):
@@ -188,7 +188,7 @@ class StorageEntry:
         while backup_entry.has_name() and backup_entry.parent is not None and backup_entry.parent.write:
             path.append(backup_entry.get_name())
             backup_entry = backup_entry.parent
-        path.append(configuration.BACKUP_PREFIX + datetime.datetime.fromtimestamp(timestamp).now().strftime('%Y%m%d%H%M%S%f'))
+        path.append(configuration.BACKUP_PREFIX + datetime.datetime.fromtimestamp(timestamp).strftime('%Y%m%d%H%M%S%f'))
         path.reverse()
         for subname in path:
             try:
@@ -217,10 +217,9 @@ class StorageEntry:
         if not self.has_entries(): raise PermissionError()
         try:
             self.make_backup(name, timestamp, move=True)
-        except (FileNotFoundError, PermissionError):
+        except (FileNotFoundError, PermissionError) as err:
             pass
         shutil.move(source, self.get_file_view().__fspath__()+os.sep+name)
-        raise NotImplementedError()
 
 
     def remove_entry(self, name: str, timestamp: Union[int, float, None] = None):

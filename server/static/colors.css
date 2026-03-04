@@ -3,6 +3,14 @@ body {
     background-attachment: fixed;
 }
 
+
+dialog {
+    border: 5px solid rgb(130, 130, 250);
+    border-radius: 15px;
+    background-color: rgb(149, 175, 255);
+}
+
+
 .content-table,
 .content-table tr,
 .content-table tr td,

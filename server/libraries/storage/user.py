@@ -21,7 +21,7 @@ class UserEntry(StorageEntry):
         self.pathuser = pathuser
         self.read = parent.read or capability is not None and storage_path.startswith(capability.storage_path) and capability.user.id == access_user.id
         self.write = parent.write or (capability is not None and capability.write)
-        if not self.read or not self.write and kwargs.get('promote_to_write', True):
+        if not self.read or (not self.write and kwargs.get('promote_to_write', True)):
             access_capability = models.Capability.query().where('user', access_user).where('storage_path', storage_path).order('write', 'DESC').get_one()
             if access_capability is not None:
                 self.read = True

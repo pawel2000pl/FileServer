@@ -9,8 +9,10 @@ logging.basicConfig(level=logging.WARNING)
 
 SERVER_PATH = os.path.dirname(os.path.abspath(__file__)) + "/"
 MAIN_PATH = SERVER_PATH + '../'
+CERT_PATH = MAIN_PATH + 'cert/'
 STATIC_PATH = SERVER_PATH + 'static/'
 STORAGE_PATH = MAIN_PATH + 'storage/'
+UPLOAD_PATH = STORAGE_PATH + 'upload/'
 DATABASE_FILENAME = STORAGE_PATH + 'database.sqlite3'
 
 BACKUP_PREFIX = 'backup'

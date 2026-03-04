@@ -132,7 +132,7 @@ def render_user_edit(user_id: Optional[int]):
         <form action="/users" method="POST">
             <input type="checkbox" id="confirm-delete" name="confirm-delete" required/>
             <label for="confirm-delete">Confirm delete</label>
-            <br>
+            <br/>
             <input type="hidden" name="user-delete-id" value="{user.id}"/>
             <input type="submit" name="delete-btn" value="Delete"/>
         </form>
