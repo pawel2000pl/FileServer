@@ -226,6 +226,13 @@ class StorageEntry:
         if not self.write: raise PermissionError()
         self.make_backup(name, timestamp, move=True)
 
+    
+    def rename_entry(self, old_name: str, new_name: str, timestamp: Union[int, float, None] = None):
+        if not self.write: raise PermissionError()
+        self.make_backup(old_name, timestamp, move=False)
+        base_path = self.get_file_view().__fspath__()+os.sep
+        shutil.move(base_path+old_name, base_path+new_name)
+
 
     def goto(self, name: str, **kwargs) -> 'StorageEntry':
         if not self.read: raise PermissionError()

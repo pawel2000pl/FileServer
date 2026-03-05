@@ -52,13 +52,6 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
             file.save(temp_filename)
             entry.add_entry(filename, temp_filename, timestamp)
 
-    # yield '''
-    #     <dialog id="some_dialog">
-    #         test
-    #     </dialog>
-    #     <script>some_dialog.showModal()</script>
-
-    # '''
 
 
 

@@ -34,15 +34,15 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
     '''
 
     yield '''
-        <dialog id="rename_panel" class="share-panel">
-            <span class="close-modal-btn" onclick="rename_panel.close()">Close</span>
+        <dialog id="rename_share_panel" class="share-panel">
+            <span class="close-modal-btn" onclick="rename_share_panel.close()">Close</span>
             <form action="#" method="post">
                 <input id="new_name_id" name="cap-id" type="hidden" value="0"/>
                 <p>
                     <span>New name</span><br/>
                     <input id="new_name_input" name="new-name" value="Unnamed"/>
                 </p>
-                <input type="submit" name="rename-btn" value="Rename"/>
+                <input type="submit" name="rename-share-btn" value="Rename"/>
             </form>
         </dialog>
     '''
@@ -65,8 +65,8 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
                 <tbody>
     '''
 
-    renaming_mode =  flask.request.method == 'POST' and 'rename-btn' in flask.request.form and 'cap-id' in flask.request.form and 'new-name' in flask.request.form
-    deleting_mode = not renaming_mode and flask.request.method == 'POST' and 'delete-btn' in flask.request.form and 'confirm-delete' in flask.request.form
+    renaming_mode =  flask.request.method == 'POST' and 'rename-share-btn' in flask.request.form and 'cap-id' in flask.request.form and 'new-name' in flask.request.form
+    deleting_mode = not renaming_mode and flask.request.method == 'POST' and 'delete-share-btn' in flask.request.form and 'confirm-delete' in flask.request.form
     rename_id = int(flask.request.form['cap-id']) if renaming_mode else 0
 
 
@@ -101,7 +101,7 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
             <tr>
                 <td><input type="checkbox" name="{checkbox_name}"/></td>
                 <td><a href="{escape(url)}">{escape(capability.name)}</a></td>
-                <td><span style="cursor: pointer" onclick="new_name_id.value={capability.id};new_name_input.value={escape(json.dumps(capability.name))};rename_panel.showModal()">&#128394;</span></td>
+                <td><span style="cursor: pointer" onclick="new_name_id.value={capability.id};new_name_input.value={escape(json.dumps(capability.name))};rename_share_panel.showModal()">&#128394;</span></td>
                 <td>{escape(shared_by)}</td>
                 <td><a href="{escape(url)}">{escape(shared_with)}</a></td>
                 <td>{shared_method}</td>
@@ -116,7 +116,7 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
                 <input id="confirm-delete" type="checkbox" name="confirm-delete" required/>
                 <label for="confirm-delete">Confirm deleting</label>
                 <br/>
-                <input type="submit" name="delete-btn" value="Delete"/>
+                <input type="submit" name="delete-share-btn" value="Delete"/>
             </p>
         </form>
     </div>

@@ -65,7 +65,7 @@ class UserhomeEntry(StorageEntry):
         return UserEntry(self.access_user, access_capability, self.pathuser, self, self.urlpath+[name], path_capability.storage_path)
 
 
-    def scan_entries(self, **kwargs) -> Iterator[StorageEntry]:
+    def scan_entries(self, include_backups=False, **kwargs) -> Iterator[StorageEntry]:
         if self.access_user.id != self.pathuser.id:
             raise PermissionError()
         for cap in models.Capability().query().where('user', self.access_user).where_not_null('name').get():
