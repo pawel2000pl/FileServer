@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import flask
 import models
 import configuration
@@ -14,7 +15,7 @@ from controllers.common import format_datetime, format_size
 def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
 
     base_url = storage_entry.generate_url()
-
+    timestamp = time.time()
 
     yield '''
         <dialog id="rename_file_panel" class="share-panel">
@@ -30,13 +31,17 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
         </dialog>
     '''
 
-    renaming_mode =  flask.request.method == 'POST' and 'rename-file-btn' in flask.request.form and 'file-name' in flask.request.form and 'new-name' in flask.request.form
-    deleting_mode = not renaming_mode and flask.request.method == 'POST' and 'delete-file-btn' in flask.request.form and 'confirm-delete' in flask.request.form
+    renaming_mode = storage_entry.write and flask.request.method == 'POST' and 'rename-file-btn' in flask.request.form and 'file-name' in flask.request.form and 'new-name' in flask.request.form
+    deleting_mode = storage_entry.write and not renaming_mode and flask.request.method == 'POST' and 'delete-file-btn' in flask.request.form and 'confirm-delete' in flask.request.form
     rename_name = flask.request.form.get('file-name', '')
     new_name = flask.request.form.get('new-name', '')
 
     if renaming_mode and len(rename_name) and len(new_name) and storage_entry.entry_exists(rename_name):
-        storage_entry.rename_entry(rename_name, new_name)
+        storage_entry.rename_entry(rename_name, new_name, timestamp)
+
+    yield '''
+        <form action="#" method="POST">
+    '''
 
     yield f'''
     <div class="section-div fileslist-div">
@@ -59,6 +64,9 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
     for entry in storage_entry.scan_entries():
         type_str = ''
         name = entry.get_name()
+        if deleting_mode and 'file-'+name in flask.request.form:
+            storage_entry.remove_entry(name, timestamp)
+            continue
         view = entry.get_file_view()
         if view.is_file(): type_str += 'F'
         if view.is_dir(): type_str += 'D'
@@ -68,9 +76,9 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
         full_url = entry.generate_url()
         yield f'''
             <tr>
-                <td><input type="checkbox" name="{escape(entry.get_name())}" value="{escape(full_url)}"/></td>
+                <td><input type="checkbox" name="file-{escape(name)}" value="{escape(full_url)}"/></td>
                 <td class="main-column"><a href="{escape(full_url)}">{escape(name)}</a></td>
-                <td><span style="cursor: pointer" onclick="let s={escape(json.dumps(entry.get_name()))}; new_name_name.value=s;new_name_input.value=s;rename_file_panel.showModal()">&#128394;</span></td>
+                <td><span style="cursor: pointer" onclick="let s={escape(json.dumps(name))}; new_name_name.value=s;new_name_input.value=s;rename_file_panel.showModal()">&#128394;</span></td>
                 <td class="only-pc">{escape(format_datetime(stat.st_mtime))}</td>
                 <td class="only-pc" sortkey="{int(stat.st_size)}">{format_size(stat.st_size)}</td>
                 <td class="only-pc">{escape(type_str)}</td>
@@ -78,11 +86,23 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
         '''
 
     yield f'''
-          </tbody>
+            </tbody>
         </table>
         <div class="fileslist-summary">
             Total: {count} elements.
         </div>
+    '''
+    if storage_entry.write:
+        yield '''
+            <p>
+                <input id="confirm-delete" type="checkbox" name="confirm-delete" onclick="delete_file_btn.disabled=!event.target.checked;"/>
+                <label for="confirm-delete">Confirm deleting</label>
+                <br/>
+                <input id="delete_file_btn" disabled type="submit" name="delete-file-btn" value="Delete"/>
+            </p>
+        </form>
+        '''
+    yield '''
         <div class="files-legend">
             <span>Legend</span>
             <ul>
@@ -92,5 +112,8 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
             </ul>
         </div>
     </div>
+    '''
+
+    yield '''
     '''
 
