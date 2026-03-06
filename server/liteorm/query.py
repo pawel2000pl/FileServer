@@ -55,6 +55,20 @@ class Query(Generic[T]):
         return self
 
 
+    def where_is_started(self, column: str, value: str) -> Self:
+        assert column in self.__model_columns
+        self.__where.append(f'{column} = SUBSTR(?, 1, LENGTH({column}))')
+        self.__params.append(self.add_value(value))
+        return self
+
+
+    def where_is_not_started(self, column: str, value: str) -> Self:
+        assert column in self.__model_columns
+        self.__where.append(f'{column} != SUBSTR(?, 1, LENGTH({column}))')
+        self.__params.append(self.add_value(value))
+        return self
+
+
     def where_null(self, column: str) -> Self:
         assert column in self.__model_columns
         self.__where.append(column + ' is null')

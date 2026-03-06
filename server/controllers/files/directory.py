@@ -37,20 +37,22 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
     new_name = flask.request.form.get('new-name', '')
 
     if renaming_mode and len(rename_name) and len(new_name) and storage_entry.entry_exists(rename_name):
-        storage_entry.rename_entry(rename_name, new_name, timestamp)
+        if storage_entry.entry_exists(new_name):
+            yield '<script>alert("Cannot change the name: the file with this name already exists.");</script>'
+        else:
+            storage_entry.rename_entry(rename_name, new_name, timestamp)
 
-    yield '''
-        <form action="#" method="POST">
-    '''
+    hide_write_html = '' if storage_entry.write else 'style="display:none;"'
 
     yield f'''
+    <form action="#" method="POST">
     <div class="section-div fileslist-div">
         <table id="directory-table" class="content-table dynamic-table file-table">
             <thead>
                 <tr>
                     <th>#</th>
                     <th class="main-column dynamic">Name</th>
-                    <th></th>
+                    <th {hide_write_html}></th>
                     <th class="only-pc dynamic">Modified</th>
                     <th class="only-pc dynamic">Size</th>
                     <th class="only-pc dynamic">Type</th>
@@ -64,7 +66,7 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
     for entry in storage_entry.scan_entries():
         type_str = ''
         name = entry.get_name()
-        if deleting_mode and 'file-'+name in flask.request.form:
+        if deleting_mode and 'file:'+name in flask.request.form:
             storage_entry.remove_entry(name, timestamp)
             continue
         view = entry.get_file_view()
@@ -76,9 +78,9 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
         full_url = entry.generate_url()
         yield f'''
             <tr>
-                <td><input type="checkbox" name="file-{escape(name)}" value="{escape(full_url)}"/></td>
+                <td><input class="file-selector" type="checkbox" name="file:{escape(name)}"/></td>
                 <td class="main-column"><a href="{escape(full_url)}">{escape(name)}</a></td>
-                <td><span style="cursor: pointer" onclick="let s={escape(json.dumps(name))}; new_name_name.value=s;new_name_input.value=s;rename_file_panel.showModal()">&#128394;</span></td>
+                <td {hide_write_html}><span style="cursor: pointer" title="Rename" onclick="let s={escape(json.dumps(name))}; new_name_name.value=s;new_name_input.value=s;rename_file_panel.showModal()">&#128394;</span></td>
                 <td class="only-pc">{escape(format_datetime(stat.st_mtime))}</td>
                 <td class="only-pc" sortkey="{int(stat.st_size)}">{format_size(stat.st_size)}</td>
                 <td class="only-pc">{escape(type_str)}</td>
@@ -94,13 +96,12 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
     '''
     if storage_entry.write:
         yield '''
-            <p>
-                <input id="confirm-delete" type="checkbox" name="confirm-delete" onclick="delete_file_btn.disabled=!event.target.checked;"/>
-                <label for="confirm-delete">Confirm deleting</label>
-                <br/>
-                <input id="delete_file_btn" disabled type="submit" name="delete-file-btn" value="Delete"/>
-            </p>
-        </form>
+        <p>
+            <input id="confirm-delete" type="checkbox" name="confirm-delete" onclick="delete_file_btn.disabled=!event.target.checked;"/>
+            <label for="confirm-delete">Confirm deleting</label>
+            <br/>
+            <input id="delete_file_btn" disabled type="submit" name="delete-file-btn" value="Delete"/>
+        </p>
         '''
     yield '''
         <div class="files-legend">
@@ -112,6 +113,7 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
             </ul>
         </div>
     </div>
+    </form>
     '''
 
     yield '''

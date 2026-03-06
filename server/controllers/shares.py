@@ -101,7 +101,7 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
             <tr>
                 <td><input type="checkbox" name="{checkbox_name}"/></td>
                 <td><a href="{escape(url)}">{escape(capability.name)}</a></td>
-                <td><span style="cursor: pointer" onclick="new_name_id.value={capability.id};new_name_input.value={escape(json.dumps(capability.name))};rename_share_panel.showModal()">&#128394;</span></td>
+                <td><span style="cursor: pointer" title="Rename" onclick="new_name_id.value={capability.id};new_name_input.value={escape(json.dumps(capability.name))};rename_share_panel.showModal()">&#128394;</span></td>
                 <td>{escape(shared_by)}</td>
                 <td><a href="{escape(url)}">{escape(shared_with)}</a></td>
                 <td>{shared_method}</td>

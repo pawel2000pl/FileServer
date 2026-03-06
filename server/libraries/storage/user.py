@@ -10,7 +10,7 @@ from typing import Optional, Iterator, Union
 
 class UserEntry(StorageEntry):
 
-    def __init__(self, access_user: models.User, capability: Optional[models.Capability], pathuser: models.User, parent: StorageEntry, urlpath: list[str], storage_path: str, **kwargs):
+    def __init__(self, access_user: models.User, capability: Optional[models.Capability], pathuser: models.User, parent: StorageEntry, urlpath: list[str], storage_path: str, promote_to_write: bool = True, **kwargs):
         super().__init__(parent, urlpath, **kwargs)        
         self.storage_path = storage_path
         view = self.get_file_view()
@@ -21,13 +21,14 @@ class UserEntry(StorageEntry):
         self.pathuser = pathuser
         self.read = parent.read or capability is not None and storage_path.startswith(capability.storage_path) and capability.user.id == access_user.id
         self.write = parent.write or (capability is not None and capability.write)
-        if not self.read or (not self.write and kwargs.get('promote_to_write', True)):
-            access_capability = models.Capability.query().where('user', access_user).where('storage_path', storage_path).order('write', 'DESC').get_one()
+        if not self.read or (not self.write and promote_to_write):
+            storage_path_parts = storage_path.split(os.sep)
+            allowed_storage_paths = [os.sep.join(storage_path_parts[:i+1]) for i in range(len(storage_path_parts))]
+            access_capability = models.Capability.query().where('user', access_user).where_in('storage_path', allowed_storage_paths).where('write').get_one()
             if access_capability is not None:
                 self.read = True
                 self.write = self.write or access_capability.write
                 self.capability = access_capability
-                self.urlpath = ['userfile', access_user.name, access_capability.name]
 
 
     def goto(self, name: str, **kwargs) -> 'StorageEntry':
@@ -59,7 +60,7 @@ class UserhomeEntry(StorageEntry):
             paths = path_capability.storage_path.split(os.sep)
             query = models.Capability.query()
             query.where('user', self.access_user)
-            query.where_in('storage_path', [os.sep.join(paths[:i]) for i in range(len(paths))])
+            query.where_in('storage_path', [os.sep.join(paths[:i+1]) for i in range(len(paths))])
             query.order('write', 'DESC')
             access_capability = query.get_one()
         return UserEntry(self.access_user, access_capability, self.pathuser, self, self.urlpath+[name], path_capability.storage_path)

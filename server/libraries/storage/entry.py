@@ -12,14 +12,13 @@ from configuration import ALLOW_LINKS, BACKUP_PREFIX, SHOW_BACKUPS_IN_FILES
 
 class StorageEntry:
 
-    def __init__(self, parent: Optional['StorageEntry'], urlpath: list[str], **kwargs):
+    def __init__(self, parent: Optional['StorageEntry'], urlpath: list[str], fileview: Union[DirEntry, FileView, None] = None, **kwargs):
+        assert fileview is None or isinstance(fileview, (FileView, DirEntry))
         self.parent = parent
         self.urlpath = urlpath
         self.read = False
         self.write = False        
-        test_view = kwargs.get('fileview', None) 
-        assert test_view is None or isinstance(test_view, (FileView, DirEntry))
-        self.__file_view: Union[FileView, DirEntry, None] = test_view
+        self.__file_view: Union[FileView, DirEntry, None] = fileview
         self.__cached_url: Optional[str] = None
 
     

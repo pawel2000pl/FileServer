@@ -1,6 +1,5 @@
 "use strict";
 
-// const unicode_arrow_both = String.fromCharCode(11109);
 const unicode_arrow_up = String.fromCharCode(11105);
 const unicode_arrow_down = String.fromCharCode(11107);
 const unicode_search = String.fromCharCode(9000);
@@ -13,7 +12,7 @@ function makeDynamicTable(table) {
     const headers = Array.from(table.querySelectorAll('thead tr th'));
     const all_rows = Array.from(table.querySelectorAll('tbody tr'));
     table.search_edits = Array();
-    const tableId = location.pathname + '??' + table.id;
+    const tableId = 'table-filters:' + location.pathname + '??' + table.id;
 
     all_rows.forEach(tr => tr.visible = true);
 
