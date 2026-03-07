@@ -52,7 +52,7 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
                 <tr>
                     <th>#</th>
                     <th class="main-column dynamic">Name</th>
-                    <th {hide_write_html}></th>
+                    <th {hide_write_html} class="last-on-mobile"></th>
                     <th class="only-pc dynamic">Modified</th>
                     <th class="only-pc dynamic">Size</th>
                     <th class="only-pc dynamic">Type</th>
@@ -80,7 +80,7 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
             <tr>
                 <td><input class="file-selector" type="checkbox" name="file:{escape(name)}"/></td>
                 <td class="main-column"><a href="{escape(full_url)}">{escape(name)}</a></td>
-                <td {hide_write_html}><span style="cursor: pointer" title="Rename" onclick="let s={escape(json.dumps(name))}; new_name_name.value=s;new_name_input.value=s;rename_file_panel.showModal()">&#128394;</span></td>
+                <td {hide_write_html} class="last-on-mobile"><span style="cursor: pointer" title="Rename" onclick="let s={escape(json.dumps(name))}; new_name_name.value=s;new_name_input.value=s;rename_file_panel.showModal()">&#128394;</span></td>
                 <td class="only-pc">{escape(format_datetime(stat.st_mtime))}</td>
                 <td class="only-pc" sortkey="{int(stat.st_size)}">{format_size(stat.st_size)}</td>
                 <td class="only-pc">{escape(type_str)}</td>

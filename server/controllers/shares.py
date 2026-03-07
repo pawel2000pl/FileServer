@@ -56,10 +56,10 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
                         <th>#</th>
                         <th class="dynamic">Name</th>
                         <th></th>
-                        <th class="dynamic">Shared by</th>
-                        <th class="dynamic">Shared with user / token</th>
-                        <th class="dynamic">Share method</th>
-                        <th class="dynamic">Write</th>
+                        <th>Shared by</th>
+                        <th class="last-on-mobile">Shared with user / token</th>
+                        <th class="dynamic only-pc">Share method</th>
+                        <th class="dynamic only-pc">Write</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -103,9 +103,9 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
                 <td><a href="{escape(url)}">{escape(capability.name)}</a></td>
                 <td><span style="cursor: pointer" title="Rename" onclick="new_name_id.value={capability.id};new_name_input.value={escape(json.dumps(capability.name))};rename_share_panel.showModal()">&#128394;</span></td>
                 <td>{escape(shared_by)}</td>
-                <td><a href="{escape(url)}">{escape(shared_with)}</a></td>
-                <td>{shared_method}</td>
-                <td>{capability.write}</td>
+                <td class="last-on-mobile"><a href="{escape(url)}">{escape(shared_with)}</a></td>
+                <td class="only-pc">{shared_method}</td>
+                <td class="only-pc">{capability.write}</td>
             </tr>
         '''
 

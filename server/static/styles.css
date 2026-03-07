@@ -24,13 +24,11 @@ a {
 }
 
 
-
 .menu-section {
     margin-bottom: 24px;
 }
 
 
-/* Style na komputerze */
 @media (min-width: 768px) {
     .container {
         grid-template-columns: 20% 1fr;
@@ -38,7 +36,7 @@ a {
     }
 }
 
-/* Style na telefonie */
+
 @media (max-width: 767px) {
     .container {
         grid-template-columns: 1fr;
@@ -46,11 +44,13 @@ a {
     }
 }
 
+
 @media (max-width: 767px) {
     .only-pc {
         display: none;
     }
 }
+
 
 .filters-form-div form div {
     display: inline-block;
@@ -84,19 +84,16 @@ a {
 .content-table th {
     max-height: 1em;
     overflow: hidden;
-    text-wrap: nowrap;
+    /* text-wrap: nowrap; */
 }
 
 
-.file-table .main-column {
-    min-width: 60%;
-}
-
-
-.content-table td, .content-table th {
-  padding-left: 5px;
-  padding-right: 5px;
-  text-wrap: nowrap;
+.content-table td,
+.content-table th {
+    padding-left: 5px;
+    padding-right: 5px;
+    word-wrap: break-word; 
+    /* text-wrap: nowrap; */
 }
 
 
@@ -166,6 +163,7 @@ video {
 .file-tool-panel {
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
 }
 
 .share-manual {
@@ -175,12 +173,14 @@ video {
 }
 
 
-.login-panel, .user-edit {
+.login-panel,
+.user-edit {
     width: max-content;
 }
 
 
-.login-panel input, .user-edit input {
+.login-panel input,
+.user-edit input {
     display: block;
     margin: 5px;
 }

@@ -17,7 +17,7 @@ def render_backups(storage_entry: StorageEntry) -> Iterator[str]:
         <table id="backup-table" class="content-table dynamic-table file-table">
             <thead>
                 <tr>
-                    <th class="main-column dynamic">Path</th>
+                    <th class="main-column dynamic last-on-mobile">Path</th>
                     <th class="only-pc dynamic">Modified</th>
                     <th class="only-pc dynamic">Size</th>
                     <th class="only-pc dynamic">Type</th>
@@ -38,7 +38,7 @@ def render_backups(storage_entry: StorageEntry) -> Iterator[str]:
         show_url = '/'.join(url_str.split('/')[3:])
         yield f'''
             <tr>
-                <td class="main-column"><a href="{escape(url_str)}">{escape(show_url)}</a></td>
+                <td class="main-column last-on-mobile"><a href="{escape(url_str)}">{escape(show_url)}</a></td>
                 <td class="only-pc">{escape(format_datetime(stat.st_mtime))}</td>
                 <td class="only-pc" sortkey="{int(stat.st_size)}">{format_size(stat.st_size)}</td>
                 <td class="only-pc">{escape(type_str)}</td>

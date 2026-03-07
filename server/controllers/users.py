@@ -26,10 +26,10 @@ def render_users_table():
             <thead>
                 <tr>
                     <th class="dynamic">id</th>
-                    <th class="main-column dynamic">Name</th>
-                    <th class="dynamic">show in share list</th>
-                    <th class="dynamic">active</th>
-                    <th class="dynamic">is admin</th>
+                    <th class="main-column dynamic last-on-mobile">Name</th>
+                    <th class="dynamic only-pc">show in share list</th>
+                    <th class="dynamic only-pc">active</th>
+                    <th class="dynamic only-pc">is admin</th>
                 </tr>
             </thead>
             <tbody>
@@ -39,10 +39,10 @@ def render_users_table():
         yield f'''
             <tr>
                 <td>{user.id}</td>
-                <td class="main-column"><a href="/user/{user.id}">{escape(user.name)}</a></td>
-                <td>{user.show_in_share_list}</td>
-                <td>{user.active}</td>
-                <td>{user.is_admin}</td>
+                <td class="main-column last-on-mobile"><a href="/user/{user.id}">{escape(user.name)}</a></td>
+                <td class="only-pc">{user.show_in_share_list}</td>
+                <td class="only-pc">{user.active}</td>
+                <td class="only-pc">{user.is_admin}</td>
             </tr>
         '''
 
