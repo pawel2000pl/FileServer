@@ -2,11 +2,12 @@ import base64
 import flask
 import mimetypes
 import urllib.parse
+from time import sleep
 from typing import Iterator
 from itertools import chain
 from libraries.storage import StorageEntry
-from configuration import BUFFER_SIZE
 from controllers.files.stream_zip import stream_zip
+from configuration import BUFFER_SIZE, USE_X_ACCEL_REDIRECT, MAX_DOWNLOAD_RATE
 from response_stream import ResponseStream, ResponseHeader, ResponseCode, HTTPError
 
 
@@ -18,20 +19,26 @@ def get_ranges(r: str, default_size: int) -> tuple[int, int]:
     return (int(strs[0]), int(strs[1]))
 
 
-def serve_file(system_path: str, filename: str, download: bool = True) -> ResponseStream:
+def serve_file(storage_entry: StorageEntry, download: bool = True) -> ResponseStream:
+
+    system_path = storage_entry.get_system_path()
+    filename = storage_entry.get_name()
+    extension = '.' + filename.rsplit('.', 1)[-1]
+    mime = mimetypes.types_map.get(extension, 'application/octet-stream')
+    yield ResponseHeader('Content-Type', mime)
+    yield ResponseHeader('Content-Disposition', f'attachment; filename="{urllib.parse.quote(filename)}"' if download else 'inline')
+
+    if USE_X_ACCEL_REDIRECT:
+        yield ResponseHeader('X-Accel-Redirect', '/storage/' + storage_entry.get_storage_path())
+        return
 
     f = open(system_path, 'rb', 0)
     size = f.seek(0, 2)
-
-    extension = '.' + filename.rsplit('.', 1)[-1]
-    mime = mimetypes.types_map.get(extension, 'application/octet-stream')
 
     yield ResponseHeader('Cache-Control', None)
     yield ResponseHeader('Pragma', None)
     yield ResponseHeader('Accept-Ranges', 'bytes')
     yield ResponseHeader('Content-Length', str(size))
-    yield ResponseHeader('Custom-Content-Type', mime)
-    yield ResponseHeader('Content-Disposition', f'attachment; filename="{urllib.parse.quote(filename)}"' if download else 'inline')
     if flask.request.method == 'HEAD':
         yield bytes()
         return
@@ -69,6 +76,7 @@ def serve_file(system_path: str, filename: str, download: bool = True) -> Respon
         f.seek(range_min)
         while read_size > 0:
             buf = f.read(min(read_size, BUFFER_SIZE))
+            sleep(BUFFER_SIZE / MAX_DOWNLOAD_RATE)
             read_size -= len(buf)
             yield buf
 
@@ -76,6 +84,7 @@ def serve_file(system_path: str, filename: str, download: bool = True) -> Respon
 
 def download_partial(storage_entry: StorageEntry, download: bool = False) -> ResponseStream:
     assert storage_entry.get_file_view().is_file()
-    return serve_file(storage_entry.get_system_path(), storage_entry.get_name(), download)
+    return serve_file(storage_entry, download)
+
 
 
