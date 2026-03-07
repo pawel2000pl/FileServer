@@ -45,7 +45,7 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
     hide_write_html = '' if storage_entry.write else 'style="display:none;"'
 
     yield f'''
-    <form action="#" method="POST">
+    <form id="file_list_form" action="#" method="POST">
     <div class="section-div fileslist-div">
         <table id="directory-table" class="content-table dynamic-table file-table">
             <thead>

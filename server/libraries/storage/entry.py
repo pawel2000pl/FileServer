@@ -211,14 +211,21 @@ class StorageEntry:
                 shutil.copyfile(source, destination)
 
 
-    def add_entry(self, name: str, source: str, timestamp: Union[int, float, None] = None):
+    def add_entry(self, name: str, source: str, timestamp: Union[int, float, None] = None, move: bool = True):
         if not self.write: raise PermissionError()
         if not self.has_entries(): raise PermissionError()
         try:
             self.make_backup(name, timestamp, move=True)
         except (FileNotFoundError, PermissionError) as err:
             pass
-        shutil.move(source, self.get_file_view().__fspath__()+os.sep+name)
+        destination = self.get_file_view().__fspath__()+os.sep+name
+        if move:
+            shutil.move(source, destination)
+        else:
+            if os.path.isdir(source):
+                shutil.copytree(source, destination)
+            else:
+                shutil.copyfile(source, destination)
 
 
     def remove_entry(self, name: str, timestamp: Union[int, float, None] = None):
