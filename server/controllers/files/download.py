@@ -29,7 +29,7 @@ def serve_file(storage_entry: StorageEntry, download: bool = True) -> ResponseSt
     yield ResponseHeader('Content-Disposition', f'attachment; filename="{urllib.parse.quote(filename)}"' if download else 'inline')
 
     if USE_X_ACCEL_REDIRECT:
-        yield ResponseHeader('X-Accel-Redirect', '/storage/' + storage_entry.get_storage_path())
+        yield ResponseHeader('X-Accel-Redirect', urllib.parse.quote('/storage/' + storage_entry.get_storage_path()))
         return
 
     f = open(system_path, 'rb', 0)

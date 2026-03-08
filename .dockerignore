@@ -168,3 +168,4 @@ headers.txt
 *.sqlite3
 
 storage/*
+.git
