@@ -67,8 +67,8 @@ def render_menu():
             <tbody>
                 <tr {home_display}><td><a href="/userfile/{escape(user.name)}/{escape(HOME_CAP_NAME)}">Home</a></td></tr>
                 <tr><td><a href="/userfile/{escape(user.name)}">Browse files</a></td></tr>
-                <tr><td><a href="/shared_by">Shared by me</a></td></tr>
                 <tr><td><a href="/shared_with">Shared with me</a></td></tr>
+                <tr><td><a href="/shared_by">Shared by me</a></td></tr>
             </tbody>
         </table>
         '''

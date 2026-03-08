@@ -126,7 +126,7 @@ def new_user():
 @response_stream.http_response
 @controllers.login.require_login
 def shared_with():
-    return controllers.shares.render_shares(True, False, False)
+    return controllers.shares.render_shares(True, True, False)
 
 
 @application.route('/shared_by', methods=['GET', 'POST'])
