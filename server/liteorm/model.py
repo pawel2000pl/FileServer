@@ -326,14 +326,15 @@ class Model:
         return self.__modified
 
 
-    def persist(self, cursor = None, force: bool = False, commit: Optional[bool] = None) -> None:
+    def persist(self, cursor = None, force: bool = False, commit: Optional[bool] = None, recurrent: bool = True) -> None:
         if not (force or self.__modified): return
         cursor = self.database.get_cursor(cursor)
         self.before_persist()
-        for col, obj in self.__subobjects.items():
-            if obj is None: continue
-            obj.persist(cursor, commit=False)
-            self.__data[col] = obj.get_pk_val()
+        if recurrent:
+            for col, obj in self.__subobjects.items():
+                if obj is None: continue
+                obj.persist(cursor, commit=False)
+                self.__data[col] = obj.get_pk_val()
         if self.get_pk_val() is None:
             self.before_insert()
             insert_columns = list(k for k, v in self.__data.items() if v is not None)

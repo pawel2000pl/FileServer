@@ -37,7 +37,7 @@ class User(MainDatabaseModel):
                 cap.storage_path = home_path
                 cap.write = True
                 cap.name = configuration.HOME_CAP_NAME
-                cap.persist()
+                cap.persist(recurrent=False)
             system_path = configuration.STORAGE_PATH + home_path
             if not os.path.exists(system_path):
                 os.makedirs(system_path)
