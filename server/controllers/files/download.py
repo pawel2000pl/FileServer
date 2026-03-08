@@ -1,14 +1,14 @@
-import base64
 import flask
-import mimetypes
+import base64
+import datetime
+import subprocess
 import urllib.parse
-from time import sleep
 from typing import Iterator
-from itertools import chain
+from time import sleep, time
+from libraries.mime import get_mimetype
 from libraries.storage import StorageEntry
-from controllers.files.stream_zip import stream_zip
-from configuration import BUFFER_SIZE, USE_X_ACCEL_REDIRECT, MAX_DOWNLOAD_RATE
 from response_stream import ResponseStream, ResponseHeader, ResponseCode, HTTPError
+from configuration import BUFFER_SIZE, USE_X_ACCEL_REDIRECT, MAX_DOWNLOAD_RATE, COMPRESSION_TIMEOUT
 
 
 def get_ranges(r: str, default_size: int) -> tuple[int, int]:
@@ -24,7 +24,7 @@ def serve_file(storage_entry: StorageEntry, download: bool = True) -> ResponseSt
     system_path = storage_entry.get_system_path()
     filename = storage_entry.get_name()
     extension = '.' + filename.rsplit('.', 1)[-1]
-    mime = mimetypes.types_map.get(extension, 'application/octet-stream')
+    mime = get_mimetype(extension)
     yield ResponseHeader('Content-Type', mime)
     yield ResponseHeader('Content-Disposition', f'attachment; filename="{urllib.parse.quote(filename)}"' if download else 'inline')
 
@@ -64,7 +64,7 @@ def serve_file(storage_entry: StorageEntry, download: bool = True) -> ResponseSt
         total_size += len(subheader) + read_size
         parts.append((range_min, range_max, subheader, read_size))
     if multipart:
-        yield ResponseHeader('Custom-Content-Type', 'multipart/byteranges; boundary='+boundary)
+        yield ResponseHeader('Content-Type', 'multipart/byteranges; boundary='+boundary)
         yield ResponseHeader('Content-Length', str(total_size))
     else:
         yield ResponseHeader('Content-Range', f'bytes {range_min}-{range_max}/{size}')
@@ -76,15 +76,46 @@ def serve_file(storage_entry: StorageEntry, download: bool = True) -> ResponseSt
         f.seek(range_min)
         while read_size > 0:
             buf = f.read(min(read_size, BUFFER_SIZE))
-            sleep(BUFFER_SIZE / MAX_DOWNLOAD_RATE)
             read_size -= len(buf)
+            sleep(BUFFER_SIZE / MAX_DOWNLOAD_RATE)
             yield buf
 
 
 
 def download_partial(storage_entry: StorageEntry, download: bool = False) -> ResponseStream:
+    if not storage_entry.read: raise PermissionError()
     assert storage_entry.get_file_view().is_file()
     return serve_file(storage_entry, download)
 
 
+
+def download_zipped(entries: list[StorageEntry], download_name: str = 'download') -> ResponseStream:
+    if not all(entry.read for entry in entries): raise PermissionError()
+    if len(entries) == 0: raise HTTPError(400, 'At least one file is required')
+    path = entries[0].get_file_view().path
+    if any(entry.get_file_view().path != path for entry in entries): raise HTTPError(400, 'All files must be in the same directory')
+    filenames = [entry.get_file_view().name for entry in entries]
+    proc = subprocess.Popen(
+        ["zip", "-r", "-"] + filenames,
+        cwd=path,
+        stdout=subprocess.PIPE
+    )
+    assert proc.stdout is not None
+
+    timestamp_str = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')
+    filename = download_name + '_' + timestamp_str + '.zip'
+    timeout = time() + COMPRESSION_TIMEOUT
+    yield ResponseHeader('Content-Disposition', f'attachment; filename="{urllib.parse.quote(filename)}"')
+    yield ResponseHeader('Content-Type', 'application/zip')
+    try:
+        buf = b' '
+        while len(buf) and time() < timeout:
+            buf = proc.stdout.read(BUFFER_SIZE)
+            sleep(BUFFER_SIZE / MAX_DOWNLOAD_RATE)
+            yield buf
+    finally:
+        if proc.poll() is None:
+            proc.terminate()
+            proc.stdout.flush()
+            proc.wait(5)
 

@@ -85,7 +85,7 @@ def userfile(path):
     if len(path) < 1: raise response_stream.HTTPError(400, 'Bad request: path too short')
     if '..' in path or '.' in path: raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
     if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
-    return controllers.files.render_for_user(['userfile'] + path)
+    return controllers.files.make_request(['userfile'] + path)
 
 
 
@@ -96,7 +96,7 @@ def tokenfile(path):
     if len(path) < 1: raise response_stream.HTTPError(400, 'Bad request: path too short')
     if '..' in path or '.' in path: raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
     if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
-    return controllers.files.render_for_token(['tokenfile'] + path)
+    return controllers.files.make_request(['tokenfile'] + path)
 
 
 

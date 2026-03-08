@@ -1,6 +1,6 @@
 FROM python:3.11-alpine
 
-RUN apk add nginx
+RUN apk add nginx zip
 
 WORKDIR /app
 

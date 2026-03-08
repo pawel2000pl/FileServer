@@ -119,3 +119,29 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
     yield '''
     '''
 
+
+def render_download_options(storage_entry: StorageEntry) -> Iterator[str]:
+    if not storage_entry.read or not storage_entry.get_file_view().is_dir():
+        yield ''
+        return
+    yield '''
+        <span class="link-like-button" title="Download selected" onclick="downloadFiles(false)">Download selected</span>
+        <span class="link-like-button" title="Download all" onclick="downloadFiles(true)" >Download all</span>
+        <script>
+            function downloadFiles(all = false) {
+                const input1 = document.createElement('input');
+                input1.type = 'hidden';
+                input1.name = 'download-action';
+                input1.value = 'download';
+                file_list_form.appendChild(input1);
+                if (all) {
+                    const input2 = document.createElement('input');
+                    input2.type = 'hidden';
+                    input2.name = 'download-directory';
+                    input2.value = 'yes';
+                    file_list_form.appendChild(input2);
+                }
+                file_list_form.submit();
+            }
+        </script>
+    '''
