@@ -79,6 +79,7 @@ def render_user_edit(user_id: Optional[int]):
             if logged_user.is_admin:
                 user.is_admin = 'is_admin' in flask.request.form
                 user.active = 'active' in flask.request.form
+                user.use_home = 'use_home' in flask.request.form
             user.persist()
     except ValueError as err:
         error_msg = 'Cannot save changes. Invalid password (8-72 characters).'
@@ -89,6 +90,7 @@ def render_user_edit(user_id: Optional[int]):
     only_admin = '' if logged_user.is_admin else 'disabled="disabled"'
     user_path_id = '' if user_id is None else '/'+str(user.id)
     checked_admin = 'checked="checked"' if user.is_admin else ''
+    checked_home = 'checked="checked"' if user.use_home else ''
     checked_show_in_share_list = 'checked="checked"' if user.show_in_share_list else ''
     checked_active = 'checked="checked"' if user.active else ''
 
@@ -114,11 +116,15 @@ def render_user_edit(user_id: Optional[int]):
                 </tr>
                 <tr>
                     <td><label for="active-chkbsk">Active</label></td>
-                    <td><input id="active-chkbsk" type="checkbox" {checked_active} name="active"/></td>
+                    <td><input id="active-chkbsk" type="checkbox" {only_admin} {checked_active} name="active"/></td>
                 </tr>
                 <tr>
                     <td><label for="is-admin-chkbsk">Is admin</label></td>
                     <td><input id="is-admin-chkbsk" type="checkbox" {only_admin} {checked_admin} name="is_admin"/></td>
+                </tr>
+                <tr>
+                    <td><label for="use-home-chkbsk">Use home directory</label></td>
+                    <td><input id="use-home-chkbsk" type="checkbox" {only_admin} {checked_home} name="use_home"/></td>
                 </tr>
             </table>
             <p><input type="submit" name="save-changes" value="Save"/></p>

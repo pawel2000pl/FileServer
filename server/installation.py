@@ -67,6 +67,6 @@ def install_admin():
 def install_dirs():
     if not os.path.isdir(STORAGE_PATH):
         os.mkdir(STORAGE_PATH)
-    if not os.path.isdir(UPLOAD_PATH):
-        os.mkdir(UPLOAD_PATH)
+    if not os.path.isdir(STORAGE_PATH+USERS_HOME_STORAGE):
+        os.mkdir(STORAGE_PATH+USERS_HOME_STORAGE)
     

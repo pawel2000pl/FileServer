@@ -4,7 +4,7 @@ from models import User
 from html import escape
 from typing import Union
 from datetime import datetime
-from configuration import STATIC_PATH, INCLUDE_STATIC
+from configuration import STATIC_PATH, INCLUDE_STATIC, HOME_CAP_NAME
 
 STYLES_CONTENT = ''
 STYLES_COLORS_CONTENT = ''
@@ -60,10 +60,12 @@ def render_menu():
     user = User(id=user_id) if user_id else None
 
     if user is not None:
+        home_display = '' if user.use_home else 'style="display: none;"'
         yield f'''
         <table class="content-table menu-section">
             <thead><tr><th>Files</th></tr></thead>
             <tbody>
+                <tr {home_display}><td><a href="/userfile/{escape(user.name)}/{escape(HOME_CAP_NAME)}">Home</a></td></tr>
                 <tr><td><a href="/userfile/{escape(user.name)}">Browse files</a></td></tr>
                 <tr><td><a href="/shared_by">Shared by me</a></td></tr>
                 <tr><td><a href="/shared_with">Shared with me</a></td></tr>
