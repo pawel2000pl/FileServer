@@ -96,7 +96,7 @@ def download_zipped(entries: list[StorageEntry], download_name: str = 'download'
     if any(entry.get_file_view().path != path for entry in entries): raise HTTPError(400, 'All files must be in the same directory')
     filenames = [entry.get_file_view().name for entry in entries]
     proc = subprocess.Popen(
-        ["zip", "-r", "-"] + filenames,
+        ["zip", "-q", "-r", "-"] + filenames,
         cwd=path,
         stdout=subprocess.PIPE
     )
@@ -115,7 +115,13 @@ def download_zipped(entries: list[StorageEntry], download_name: str = 'download'
             yield buf
     finally:
         if proc.poll() is None:
-            proc.terminate()
-            proc.stdout.flush()
-            proc.wait(5)
+            try:
+                proc.terminate()
+                proc.stdout.flush()
+                proc.wait(5)
+            except subprocess.TimeoutExpired:                
+                proc.kill()
+                proc.stdout.flush()
+                proc.wait(5)
+                
 

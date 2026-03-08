@@ -7,6 +7,7 @@ from os import DirEntry
 from urllib.parse import quote
 from libraries.file_view import FileView
 from typing import Optional, Iterator, Union
+from libraries.file_loop import is_filesystem_loop
 from configuration import ALLOW_LINKS, BACKUP_PREFIX, SHOW_BACKUPS_IN_FILES
 
 
@@ -109,13 +110,10 @@ class StorageEntry:
             yield self.goto(entry.name, fileview=entry, **kwargs)
 
 
-    def __scan_backups(self, names_path: list[str], shared_set: set) -> Iterator['StorageEntry']:
+    def __scan_backups(self, names_path: list[str]) -> Iterator['StorageEntry']:
         try:
-            if self.get_file_view().is_symlink():
-                real_path = os.path.realpath(self.get_system_path())
-                if real_path in shared_set or len(shared_set) > configuration.BACKUPS_SYMLINKS_LIMIT:
-                    return
-                shared_set.add(real_path)
+            if is_filesystem_loop(self.get_system_path()):
+                return
         except NotImplementedError:
             pass
         if len(names_path) == 0:
@@ -123,7 +121,7 @@ class StorageEntry:
         if not self.has_entries():
             return
         if len(names_path) > 0:
-            for sub in self.goto(names_path[0]).__scan_backups(names_path[1:], shared_set):
+            for sub in self.goto(names_path[0]).__scan_backups(names_path[1:]):
                 yield sub
         for entry in self.scan_entries(include_backups=True, promote_to_write=False):
             view = entry.get_file_view()
@@ -140,7 +138,7 @@ class StorageEntry:
                         continue
                 if not view.name.startswith(configuration.BACKUP_PREFIX):
                     continue
-                for sub in self.goto(entry.get_name()).__scan_backups(names_path, shared_set):
+                for sub in self.goto(entry.get_name()).__scan_backups(names_path):
                     yield sub
             except (PermissionError, FileNotFoundError):
                 pass
@@ -155,7 +153,7 @@ class StorageEntry:
         search_root = path.pop()
         path.reverse()
         names = [e.get_name() for e in path]
-        for backup in search_root.__scan_backups(names, set()):
+        for backup in search_root.__scan_backups(names):
             if backup.generate_url() == self.generate_url(): continue
             yield backup
 
