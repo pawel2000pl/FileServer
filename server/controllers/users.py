@@ -113,7 +113,7 @@ def render_user_edit(user_id: Optional[int]):
                     <td><input id="show-in-share-list-chkbsk" type="checkbox" {checked_show_in_share_list} name="show_in_share_list"/></td>
                 </tr>
                 <tr>
-                    <td><label for="active-chkbsk">Show in share list</label></td>
+                    <td><label for="active-chkbsk">Active</label></td>
                     <td><input id="active-chkbsk" type="checkbox" {checked_active} name="active"/></td>
                 </tr>
                 <tr>
