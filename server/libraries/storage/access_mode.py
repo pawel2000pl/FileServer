@@ -31,7 +31,7 @@ class AccessModeEntry(StorageEntry):
         logged_user = models.User(id=logged_user_id)
         user = models.User.query().where('name', username).get_one()
         if user is None: raise FileNotFoundError()
-        return libraries.storage.UserhomeEntry(logged_user, user, self, self.urlpath+[username])
+        return libraries.storage.UserrootEntry(logged_user, user, self, self.urlpath+[username])
 
 
     def has_entries(self) -> bool:

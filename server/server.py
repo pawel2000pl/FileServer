@@ -17,7 +17,8 @@ application.config["SESSION_FILE_DIR"] = configuration.SESSION_DIR
 application.config["SESSION_COOKIE_HTTPONLY"] = True
 application.config["SESSION_COOKIE_SAMESITE"] = 'Lax'
 application.config["SESSION_ID_LENGTH"] = 64
-application.config["MAX_FORM_PARTS"] = 16384
+application.config["MAX_FORM_PARTS"] = configuration.MAX_FORM_PARTS
+application.config["MAX_FORM_MEMORY_SIZE"] = configuration.MAX_FORM_MEMORY_SIZE
 
 
 # Initialize Flask-Session

@@ -42,7 +42,7 @@ class UserEntry(StorageEntry):
 
 
 
-class UserhomeEntry(StorageEntry):
+class UserrootEntry(StorageEntry):
 
     def __init__(self, access_user: models.User, pathuser: models.User, parent: StorageEntry, urlpath: list[str]):
         super().__init__(parent, urlpath)
@@ -70,6 +70,8 @@ class UserhomeEntry(StorageEntry):
         if self.access_user.id != self.pathuser.id:
             raise PermissionError()
         for cap in models.Capability().query().where('user', self.access_user).where_not_null('name').get():
+            if not include_backups and not configuration.SHOW_BACKUPS_IN_FILES and cap.name.startswith(configuration.BACKUP_PREFIX):
+                continue
             try:
                 yield UserEntry(self.access_user, cap, self.pathuser, self, self.urlpath+[cap.name], cap.storage_path, **kwargs)
             except PermissionError:
