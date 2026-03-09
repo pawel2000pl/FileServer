@@ -2,10 +2,11 @@ import os
 import json
 import flask
 import base64
+import configuration
 from time import time
 from html import escape
-from typing import Iterator
 from models import Capability
+from typing import Iterator, Literal
 from libraries.file_view import FileView
 from libraries.storage import StorageEntry, UrlStorage
 
@@ -19,14 +20,19 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
         yield ''
         return
 
+    if configuration.ALLOW_LINKS:
+        yield '''
+            <span class="link-like-button" title="Copy links" onclick="getSelected('copy-links')">Copy as links</span>
+        '''
+
     yield '''
-        <span class="link-like-button" title="Copy selected" onclick="getSelected(false)">Copy</span>
+        <span class="link-like-button" title="Copy selected" onclick="getSelected('copy')">Copy</span>
         <script>
-            function getSelected(cut = false) {
+            function getSelected(operation) {
                 const file_list = Array.from(document.querySelectorAll('input[class="file-selector"]:checked')).map(checkbox => checkbox.name.substr(5));
                 const url_path = %s;
                 const data = {
-                    operation: cut ? 'cut' : 'copy',
+                    operation: operation,
                     url_path: url_path,
                     file_list: file_list
                 };
@@ -40,7 +46,7 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
         return
 
     yield '''
-        <span class="link-like-button" title="Cut selected" onclick="getSelected(true)">Cut</span>
+        <span class="link-like-button" title="Cut selected" onclick="getSelected('cut')">Cut</span>
         <span class="link-like-button" title="Paste" onclick="pasteFiles()">Paste</span>
         <script>
             function pasteFiles() {
@@ -66,9 +72,10 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
                 if entry.entry_exists(name):
                     raise AlreadyExists()
             
+            add_options: Literal['LINK', 'NONE'] = 'LINK' if data['operation'] == 'copy-links' else 'NONE'
             timestamp = time()
             for name in data['file_list']:
-                entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, move=False)
+                entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options=add_options)
                 if data['operation'] == 'cut':
                     source_entry.remove_entry(name, timestamp)
 

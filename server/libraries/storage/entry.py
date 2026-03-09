@@ -6,8 +6,8 @@ from time import time
 from os import DirEntry
 from urllib.parse import quote
 from libraries.file_view import FileView
-from typing import Optional, Iterator, Union
 from libraries.file_loop import is_filesystem_loop
+from typing import Optional, Iterator, Union, Literal
 from configuration import ALLOW_LINKS, BACKUP_PREFIX, SHOW_BACKUPS_IN_FILES
 
 
@@ -103,8 +103,13 @@ class StorageEntry:
         if not self.has_entries():
             raise PermissionError()
         for entry in os.scandir(self.get_file_view().__fspath__()):
-            if not ALLOW_LINKS and entry.is_symlink():
-                continue
+            if entry.is_symlink():
+                if not ALLOW_LINKS:
+                    continue
+                try:
+                    entry.stat(follow_symlinks=True)
+                except FileNotFoundError:
+                    continue
             if not include_backups and not SHOW_BACKUPS_IN_FILES and entry.name.startswith(BACKUP_PREFIX):
                 continue
             yield self.goto(entry.name, fileview=entry, **kwargs)
@@ -209,16 +214,19 @@ class StorageEntry:
                 shutil.copyfile(source, destination)
 
 
-    def add_entry(self, name: str, source: str, timestamp: Union[int, float, None] = None, move: bool = True):
+    def add_entry(self, name: str, source: str, timestamp: Union[int, float, None] = None, options: Literal['MOVE', 'LINK', 'NONE'] = 'MOVE'):
         if not self.write: raise PermissionError()
         if not self.has_entries(): raise PermissionError()
+        if options == 'LINK' and not configuration.ALLOW_LINKS: raise PermissionError()
         try:
             self.make_backup(name, timestamp, move=True)
         except (FileNotFoundError, PermissionError) as err:
             pass
         destination = self.get_file_view().__fspath__()+os.sep+name
-        if move:
+        if options == 'MOVE':
             shutil.move(source, destination)
+        elif options == 'LINK':
+            os.symlink(source, destination)
         else:
             if os.path.isdir(source):
                 shutil.copytree(source, destination)

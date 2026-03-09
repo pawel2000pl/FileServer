@@ -14,7 +14,7 @@ class UserEntry(StorageEntry):
         super().__init__(parent, urlpath, **kwargs)        
         self.storage_path = storage_path
         view = self.get_file_view()
-        if isinstance(view, FileView) and not view.exists(): raise FileNotFoundError()
+        view.stat(follow_symlinks=True)
         if not ALLOW_LINKS and view.is_symlink(): raise PermissionError()
         self.access_user = access_user
         self.capability = capability

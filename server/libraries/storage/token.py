@@ -16,7 +16,7 @@ class TokenEntry(StorageEntry):
         self.read = True
         self.write = capability.write
         view = self.get_file_view()
-        if isinstance(view, FileView) and not view.exists(): raise FileNotFoundError()
+        view.stat(follow_symlinks=True)
         if not ALLOW_LINKS and view.is_symlink(): raise PermissionError()
 
 
