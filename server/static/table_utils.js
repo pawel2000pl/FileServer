@@ -4,6 +4,7 @@ const unicode_arrow_up = String.fromCharCode(11105);
 const unicode_arrow_down = String.fromCharCode(11107);
 const unicode_search = String.fromCharCode(9000);
 const unicode_search_action = String.fromCharCode(9205);
+const unicode_clear_sort = String.fromCharCode(9747);
 
 const auto_search_limit = 256;
 
@@ -24,9 +25,9 @@ function makeDynamicTable(table) {
         });
     };
 
-    const sortRows = (column, reverse) => {
-        localStorage.setItem(tableId, JSON.stringify({column, reverse}));
-        all_rows.sort((ea, eb) => {
+
+    const makeSort = (key_order) => {
+        const part_cmp = (ea, eb, column, reverse) => {
             const ca = ea.children[column];
             const cb = eb.children[column];
             let a = 'sortkey' in ca.attributes ? ca.attributes.sortkey.value : ca.textContent;
@@ -38,8 +39,34 @@ function makeDynamicTable(table) {
                 return (numa - numb) * inv;
             }
             return a.localeCompare(b) * inv;
-        });
+        };
+        const cmp_fun = (ea, eb) => {
+            for (let i=0;i<key_order.length;i++) {
+                const result = part_cmp(ea, eb, key_order[i].column, key_order[i].reverse);
+                if (result != 0) return result;
+            }
+            return 0;
+        }
+        all_rows.sort(cmp_fun);
         refreshRows();
+    };
+
+
+    const clear_sort = (column) => {
+        let key_order = JSON.parse(localStorage.getItem(tableId) ?? '[]');
+        if (!Array.isArray(key_order)) key_order = Array();
+        key_order = key_order.filter(item => item.column != column);
+        localStorage.setItem(tableId, JSON.stringify(key_order));
+        makeSort(key_order);
+    };
+
+
+    const sortRows = (column, reverse) => {
+        let key_order = JSON.parse(localStorage.getItem(tableId) ?? '[]');
+        if (!Array.isArray(key_order)) key_order = Array();
+        key_order = [{column, reverse}].concat(key_order.filter(item => item.column != column));
+        localStorage.setItem(tableId, JSON.stringify(key_order));
+        makeSort(key_order);
     };
 
     const filterRows = () => {
@@ -106,6 +133,14 @@ function makeDynamicTable(table) {
         span_action_search.style.marginLeft = '8px'; 
         span_input_search.appendChild(input_search);
         span_input_search.appendChild(span_action_search);
+
+        const sort_clear_span = document.createElement('span');
+        sort_clear_span.textContent = unicode_clear_sort;
+        sort_clear_span.onclick = () => clear_sort(index);
+        sort_clear_span.title = 'Remove sorting by this column';
+        sort_clear_span.style.marginLeft = '8px';
+        sort_clear_span.style.cursor = 'pointer';
+        span_options.appendChild(sort_clear_span);
 
         const sort_up_span = document.createElement('span');
         sort_up_span.textContent = unicode_arrow_up;
@@ -205,7 +240,7 @@ function makeDynamicTable(table) {
     const lastSortStr = localStorage.getItem(tableId);
     if (lastSortStr !== null) {
         const lastSort = JSON.parse(lastSortStr);
-        sortRows(lastSort.column, lastSort.reverse);
+        if (Array.isArray(lastSort)) makeSort(lastSort);
     }
 }
 
