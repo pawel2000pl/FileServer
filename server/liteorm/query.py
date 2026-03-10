@@ -232,25 +232,32 @@ class Query(Generic[T]):
         return sql
 
 
-    def delete(self) -> int:
-        sql = self.generate_sql([self.__model_class.primary_key])
-        cursor = self.__model_class.database.get_cursor()
-        cursor.execute(f'DELETE FROM {self.__model_class.table_name} WHERE {self.__model_class.primary_key} IN ({sql})', self.__params)
-        if self.__model_class.database.autocommit:
+    def delete(self, cursor=None, commit: Optional[bool] = None) -> int:
+        if cursor is None: cursor = self.__model_class.database.get_cursor()
+        count = 0
+        if self.__model_class.overwritted_delete_event():
+            for rec in self.get():
+                rec.delete(cursor, commit=False)
+                count += 1
+        else:
+            sql = self.generate_sql([self.__model_class.primary_key])
+            cursor.execute(f'DELETE FROM {self.__model_class.table_name} WHERE {self.__model_class.primary_key} IN ({sql})', self.__params)
+            count = cursor.rowcount
+        if (self.__model_class.database.autocommit if commit is None else commit):
             self.__model_class.database.commit()
         self.__model_class.invalidate_model_cache()
-        return cursor.rowcount
+        return count
 
 
-    def get(self) -> Iterator[T]:
-        cursor = self.__model_class.database.get_cursor()
+    def get(self, cursor=None) -> Iterator[T]:
+        if cursor is None: cursor = self.__model_class.database.get_cursor()
         cursor.execute(self.generate_sql(self.__model_class.get_columns()), self.__params)
         return (self.__model_class.add_cache(row)().fill(row) for row in cursor)
 
 
-    def get_one(self) -> Optional[T]:
+    def get_one(self, cursor=None) -> Optional[T]:
         self.__limit = 1
-        for val in self.get():
+        for val in self.get(cursor):
             return val
         return None
 

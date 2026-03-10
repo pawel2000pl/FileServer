@@ -100,7 +100,7 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
             <input id="confirm-delete" type="checkbox" name="confirm-delete" onclick="delete_file_btn.disabled=!event.target.checked;"/>
             <label for="confirm-delete">Confirm deleting</label>
             <br/>
-            <input id="delete_file_btn" disabled type="submit" name="delete-file-btn" value="Delete"/>
+            <input id="delete_file_btn" disabled type="submit" name="delete-file-btn" value="Delete selected"/>
         </p>
         '''
     yield '''

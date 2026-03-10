@@ -1,3 +1,4 @@
+import os
 import flask
 import base64
 import datetime
@@ -8,7 +9,7 @@ from time import sleep, time
 from libraries.mime import get_mimetype
 from libraries.storage import StorageEntry
 from response_stream import ResponseStream, ResponseHeader, ResponseCode, HTTPError
-from configuration import BUFFER_SIZE, USE_X_ACCEL_REDIRECT, MAX_DOWNLOAD_RATE, COMPRESSION_TIMEOUT
+from configuration import BUFFER_SIZE, USE_X_ACCEL_REDIRECT, MAX_DOWNLOAD_RATE, COMPRESSION_TIMEOUT, BACKUP_PREFIX
 
 
 def get_ranges(r: str, default_size: int) -> tuple[int, int]:
@@ -96,7 +97,7 @@ def download_zipped(entries: list[StorageEntry], download_name: str = 'download'
     if any(entry.get_file_view().path != path for entry in entries): raise HTTPError(400, 'All files must be in the same directory')
     filenames = [entry.get_file_view().name for entry in entries]
     proc = subprocess.Popen(
-        ["zip", "-q", "-r", "-"] + filenames,
+        ['zip', '-q', '-x', f'*{os.sep}{BACKUP_PREFIX}*', '-r', '-'] + filenames,
         cwd=path,
         stdout=subprocess.PIPE
     )

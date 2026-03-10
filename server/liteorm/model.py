@@ -313,12 +313,14 @@ class Model:
             model.__cache.clear()
 
 
-    def delete(self, cursor=None):
+    def delete(self, cursor=None, commit: Optional[bool] = None):
         cursor = self.database.get_cursor(cursor)
+        self.before_delete(cursor)
         cursor.execute(f'DELETE FROM {self.table_name} WHERE {self.primary_key} = ?', [self.get_pk_val()])        
-        if self.database.autocommit:
-            self.database.commit()
         self.invalidate_cache()
+        self.after_delete(cursor)
+        if (self.database.autocommit if commit is None else commit):
+            self.database.commit()
         return cursor.connection
 
 
@@ -329,14 +331,14 @@ class Model:
     def persist(self, cursor = None, force: bool = False, commit: Optional[bool] = None, recurrent: bool = True) -> None:
         if not (force or self.__modified): return
         cursor = self.database.get_cursor(cursor)
-        self.before_persist()
+        self.before_persist(cursor)
         if recurrent:
             for col, obj in self.__subobjects.items():
                 if obj is None: continue
                 obj.persist(cursor, commit=False)
                 self.__data[col] = obj.get_pk_val()
         if self.get_pk_val() is None:
-            self.before_insert()
+            self.before_insert(cursor)
             insert_columns = list(k for k, v in self.__data.items() if v is not None)
             if len(insert_columns) == 0:
                 cursor.execute(f'INSERT INTO {self.table_name} ({self.primary_key}) SELECT MAX({self.primary_key})+1 FROM {self.table_name}')
@@ -347,54 +349,61 @@ class Model:
                     f'INSERT INTO {self.table_name} ({insert_columns_str}) VALUES ({insert_columns_params_str})',
                     [self.__data.get(col, None) for col in insert_columns]
                 )
-            if (self.database.autocommit if commit is None else commit):
-                self.database.commit()
             self.set_pk_val(cursor.lastrowid)
             self.invalidate_cache()
             self.reload(cursor)
-            self.after_insert()
+            self.after_insert(cursor)
         else:
-            self.before_update()
+            self.before_update(cursor)
             columns_list_no_pk = [col for col in self.get_columns() if col != self.primary_key]
             update_list_str = ', '.join([col + ' = ?' for col in columns_list_no_pk])
             cursor.execute(
                 f'UPDATE {self.table_name} SET {update_list_str} WHERE {self.primary_key} = ?',
                 [self.__data.get(col, None) for col in columns_list_no_pk] + [self.get_pk_val()]
             )
-            if (self.database.autocommit if commit is None else commit):
-                self.database.commit()
             self.invalidate_cache()
-            self.after_update()
+            self.after_update(cursor)
         self.__modified = False
-        self.after_persist()
+        self.after_persist(cursor)
+        if (self.database.autocommit if commit is None else commit):
+            self.database.commit()
 
 
-    def before_persist_checks(self):
+    def before_persist(self, cursor=None):
         pass
 
 
-    def before_persist(self):
+    def before_update(self, cursor=None):
         pass
 
 
-    def before_update(self):
+    def before_insert(self, cursor=None):
         pass
 
 
-    def before_insert(self):
+    def after_persist(self, cursor=None):
         pass
 
 
-    def after_persist(self):
+    def before_delete(self, cursor=None):
         pass
 
 
-    def after_update(self):
+    def after_update(self, cursor=None):
         pass
 
 
-    def after_insert(self):
+    def after_insert(self, cursor=None):
         pass
+
+
+    def after_delete(self, cursor=None):
+        pass
+
+
+    @classmethod
+    def overwritted_delete_event(cls) -> bool:
+        return cls.before_delete != Model.before_delete or cls.after_delete != Model.after_delete
 
 
     @staticmethod

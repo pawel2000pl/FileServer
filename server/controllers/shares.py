@@ -74,8 +74,7 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
 
         checkbox_name = 'share_%d'%capability.id
         if deleting_mode and checkbox_name in flask.request.form:
-            for subcap in capability.get_recursive_by('id', 'depends_on', True):
-                subcap.delete()
+            capability.delete()
             continue
 
         if renaming_mode and capability.id == rename_id and (capability.user.id == user.id or user.is_admin):
@@ -113,10 +112,10 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
                 </tbody>
             </table>
             <p>
-                <input id="confirm-delete" type="checkbox" name="confirm-delete" required/>
+                <input id="confirm-delete" type="checkbox" name="confirm-delete" onchange="delete_share_btn.disabled = !event.target.checked;" required/>
                 <label for="confirm-delete">Confirm deleting</label>
                 <br/>
-                <input type="submit" name="delete-share-btn" value="Delete"/>
+                <input type="submit" id="delete_share_btn" name="delete-share-btn" value="Delete selected" disabled/>
             </p>
         </form>
     </div>

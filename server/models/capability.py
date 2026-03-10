@@ -32,7 +32,7 @@ class Capability(MainDatabaseModel):
         return query.get_one()
 
 
-    def before_persist(self):
+    def before_persist(self, cursor=None):
         assert self.user is None or self.token is None
         assert self.storage_path is not None
         assert len(self.storage_path) > 0
@@ -45,13 +45,17 @@ class Capability(MainDatabaseModel):
             if self.name == '': self.name = 'Unnamed'
             i = 2
             base_name = self.name
-            while self.query().where('user', self.user).where('name', self.name).where_not('id', self.id).get_one() is not None:
+            while self.query().where('user', self.user).where('name', self.name).where_not('id', self.id).get_one(cursor) is not None:
                 self.name = '%s (%d)'%(base_name, i)
                 i += 1
 
 
-    def after_persist(self):
-        for cap in self.query().where('depends_on', self.id).get():
+    def after_persist(self, cursor=None):
+        for cap in self.query().where('depends_on', self.id).get(cursor):
             if not cap.write or self.write: continue
-            cap.persist(force=True)
+            cap.persist(cursor, force=True, commit=False)
+
+
+    def before_delete(self, cursor=None):
+        self.query().where('depends_on', self.id).delete(cursor, commit=False)
 
