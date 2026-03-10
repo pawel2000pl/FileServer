@@ -236,7 +236,7 @@ class Query(Generic[T]):
         if cursor is None: cursor = self.__model_class.database.get_cursor()
         count = 0
         if self.__model_class.overwritted_delete_event():
-            for rec in self.get():
+            for rec in self.get(cursor):
                 rec.delete(cursor, commit=False)
                 count += 1
         else:
