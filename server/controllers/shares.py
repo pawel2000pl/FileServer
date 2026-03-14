@@ -10,6 +10,7 @@ from urllib.parse import quote
 from typing import Optional, Iterator
 from controllers.common import render_page
 from libraries.storage import StorageEntry
+from libraries.filename import assert_filename
 from configuration import MINIMUM_TOKEN_LENGTH
 
 
@@ -181,8 +182,7 @@ def create_share() -> Iterator[str]:
         referer = flask.request.form['referer']
         rest_of_path = flask.request.form['rest_of_path']
         for part in rest_of_path.split(os.sep):
-            if len({'/', '\\', '~', ':'}.intersection(part)): raise PermissionError()
-            if part in {'..', '.', '~'}: raise PermissionError()
+            assert_filename(part)
         capability_id = int(flask.request.form['capability_id'])
         username = flask.request.form.get('username', '')
         share_name = flask.request.form.get('share-name', '')

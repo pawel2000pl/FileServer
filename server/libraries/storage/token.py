@@ -5,6 +5,7 @@ from typing import Optional
 from configuration import ALLOW_LINKS
 from libraries.file_view import FileView
 from libraries.storage import StorageEntry
+from libraries.filename import assert_filename
 
 
 class TokenEntry(StorageEntry):
@@ -27,8 +28,7 @@ class TokenEntry(StorageEntry):
 
 
     def goto(self, name: str, **kwargs) -> 'StorageEntry':
-        if len({'/', '\\', '~', ':'}.intersection(name)): raise PermissionError()
-        if name in {'..', '.', '~'}: raise PermissionError()
+        assert_filename(name)
         return TokenEntry(self.capability, self, self.urlpath+[name], **kwargs)
 
 

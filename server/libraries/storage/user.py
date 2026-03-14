@@ -6,6 +6,7 @@ from configuration import ALLOW_LINKS
 from libraries.file_view import FileView
 from libraries.storage import StorageEntry
 from typing import Optional, Iterator, Union
+from libraries.filename import assert_filename
 
 
 class UserEntry(StorageEntry):
@@ -32,8 +33,7 @@ class UserEntry(StorageEntry):
 
 
     def goto(self, name: str, **kwargs) -> 'StorageEntry':
-        if len({'/', '\\', '~', ':'}.intersection(name)): raise PermissionError()
-        if name in {'..', '.', '~'}: raise PermissionError()
+        assert_filename(name)
         return UserEntry(self.access_user, self.capability, self.pathuser, self, self.urlpath+[name], self.storage_path+os.sep+name, **kwargs)
 
 

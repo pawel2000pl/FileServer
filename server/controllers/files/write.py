@@ -8,6 +8,7 @@ from html import escape
 from typing import Iterator
 from models import Capability
 from libraries.file_view import FileView
+from libraries.filename import assert_filename
 from libraries.storage import StorageEntry, UrlStorage
 
 
@@ -127,8 +128,7 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
     if flask.request.method == 'POST' and 'new-directory-btn' in flask.request.form and 'new-name' in flask.request.form:
         new_name = flask.request.form['new-name']
         try:
-            if len({'/', '\\', '~', ':'}.intersection(new_name)): raise PermissionError()
-            if new_name in {'..', '.', '~'}: raise PermissionError()
+            assert_filename(new_name)
             if entry.entry_exists(new_name): raise AlreadyExists()
             new_dir = entry_system_path + os.sep + new_name
             os.mkdir(new_dir)
@@ -147,8 +147,7 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
             filename = file.filename
             if filename is None: continue
             if filename == '': continue
-            if len({'/', '\\', '~', ':'}.intersection(filename)): continue
-            if filename in {'..', '.', '~'}: continue
+            assert_filename(filename)
             i = 2
             original_filename = filename
             while not overwrite and entry.entry_exists(filename):

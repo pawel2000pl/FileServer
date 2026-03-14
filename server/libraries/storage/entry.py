@@ -8,6 +8,7 @@ from os import DirEntry
 from itertools import chain
 from urllib.parse import quote
 from libraries.file_view import FileView
+from libraries.filename import assert_filename
 from libraries.file_loop import is_filesystem_loop
 from typing import Optional, Iterator, Union, Literal
 from configuration import ALLOW_LINKS, BACKUP_PREFIX, SHOW_BACKUPS_IN_FILES
@@ -259,10 +260,8 @@ class StorageEntry:
     def move_entry(self, source_entry: 'StorageEntry', source_name: str, dest_name: str, timestamp: Union[int, float, None] = None):
         if not self.write: raise PermissionError()
         if not source_entry.write: raise PermissionError()
-        if len({'/', '\\', '~', ':'}.intersection(source_name)): raise PermissionError()
-        if source_name in {'..', '.', '~'}: raise PermissionError()
-        if len({'/', '\\', '~', ':'}.intersection(dest_name)): raise PermissionError()
-        if dest_name in {'..', '.', '~'}: raise PermissionError()
+        assert_filename(source_name)
+        assert_filename(dest_name)
         if not source_entry.entry_exists(source_name): raise FileNotFoundError()
         if configuration.TRIVIAL_BACKUPS:
             source_entry.make_backup(source_name, timestamp, move=False)
