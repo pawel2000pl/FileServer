@@ -3,6 +3,7 @@ import json
 import flask
 import base64
 import models
+import configuration
 import response_stream
 from html import escape
 from urllib.parse import quote
@@ -56,8 +57,8 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
                         <th>#</th>
                         <th class="dynamic">Name</th>
                         <th></th>
-                        <th>Shared by</th>
-                        <th class="last-on-mobile">Shared with user / token</th>
+                        <th class="dynamic">Shared by</th>
+                        <th class="last-on-mobile dynamic">Shared with user / token</th>
                         <th class="dynamic only-pc">Share method</th>
                         <th class="dynamic only-pc">Write</th>
                     </tr>
@@ -72,12 +73,15 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
 
     for capability in query.get():
 
+        can_be_renamed = user.is_admin or capability.name != configuration.HOME_CAP_NAME
+        rename_display_html = '' if can_be_renamed else 'display: none;'
+
         checkbox_name = 'share_%d'%capability.id
         if deleting_mode and checkbox_name in flask.request.form:
             capability.delete()
             continue
 
-        if renaming_mode and capability.id == rename_id and (capability.user.id == user.id or user.is_admin):
+        if renaming_mode and can_be_renamed and capability.id == rename_id and (capability.user.id == user.id or user.is_admin):            
             capability.name = flask.request.form['new-name']
             capability.persist()
 
@@ -100,7 +104,7 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
             <tr>
                 <td><input type="checkbox" name="{checkbox_name}"/></td>
                 <td><a href="{escape(url)}">{escape(capability.name)}</a></td>
-                <td><span style="cursor: pointer" title="Rename" onclick="new_name_id.value={capability.id};new_name_input.value={escape(json.dumps(capability.name))};rename_share_panel.showModal()">&#128394;</span></td>
+                <td><span style="cursor: pointer; {rename_display_html}" title="Rename" onclick="new_name_id.value={capability.id};new_name_input.value={escape(json.dumps(capability.name))};rename_share_panel.showModal()">&#128394;</span></td>
                 <td>{escape(shared_by)}</td>
                 <td class="last-on-mobile"><a href="{escape(url)}">{escape(shared_with)}</a></td>
                 <td class="only-pc">{shared_method}</td>

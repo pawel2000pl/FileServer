@@ -60,7 +60,7 @@ def render_menu():
     user = User(id=user_id) if user_id else None
 
     if user is not None:
-        home_display = '' if user.use_home else 'style="display: none;"'
+        home_display = '' if user.use_home and user.has_home() else 'style="display: none;"'
         yield f'''
         <table class="content-table menu-section">
             <thead><tr><th>Files</th></tr></thead>

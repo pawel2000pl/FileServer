@@ -62,3 +62,8 @@ class User(MainDatabaseModel):
 
     def check_password_hash(self, password_text):
         return self.active and bcrypt.checkpw(password_text.encode('utf-8'), self.password.encode('utf-8'))
+
+
+    def has_home(self):
+        return models.Capability.query().where('user', self).where('name', configuration.HOME_CAP_NAME).where('write').exists()
+
