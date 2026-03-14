@@ -1,9 +1,11 @@
 import os
 import shutil
+import models
 import datetime
 import configuration
 from time import time
 from os import DirEntry
+from itertools import chain
 from urllib.parse import quote
 from libraries.file_view import FileView
 from libraries.file_loop import is_filesystem_loop
@@ -236,14 +238,36 @@ class StorageEntry:
 
     def remove_entry(self, name: str, timestamp: Union[int, float, None] = None):
         if not self.write: raise PermissionError()
+        entry = self.goto(name)
         self.make_backup(name, timestamp, move=True)
+        storage_path = entry.get_storage_path()
+        cursor = models.MainDatabase.get_cursor()
+        models.Capability.query().where('storage_path', storage_path).delete(cursor, commit=False)
+        models.Capability.query().where_starts('storage_path', storage_path+os.sep).delete(cursor, commit=False)
+        cursor.connection.commit()
 
     
     def rename_entry(self, old_name: str, new_name: str, timestamp: Union[int, float, None] = None):
         if not self.write: raise PermissionError()
-        self.make_backup(old_name, timestamp, move=False)
+        if len({'/', '\\', '~', ':'}.intersection(new_name)): raise PermissionError()
+        if new_name in {'..', '.', '~'}: raise PermissionError()
+        if not self.entry_exists(old_name): raise FileNotFoundError()
+        if configuration.TRIVIAL_BACKUPS:
+            self.make_backup(old_name, timestamp, move=False)
+        old_entry = self.goto(old_name)
         base_path = self.get_file_view().__fspath__()+os.sep
         shutil.move(base_path+old_name, base_path+new_name)
+        new_entry = self.goto(new_name)
+
+        old_storage_path = old_entry.get_storage_path()
+        new_storage_path = new_entry.get_storage_path()
+        cursor = models.MainDatabase.get_cursor()
+        caps1 = models.Capability.query().where('storage_path', old_storage_path)
+        caps2 = models.Capability.query().where_starts('storage_path', old_storage_path+os.sep)
+        for cap in chain(caps1, caps2):
+            cap.storage_path = new_storage_path + cap.storage_path[len(old_storage_path):]
+            cap.persist(cursor, commit=False)
+        cursor.connection.commit()
 
 
     def goto(self, name: str, **kwargs) -> 'StorageEntry':

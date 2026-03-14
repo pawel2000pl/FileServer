@@ -17,6 +17,7 @@ DATABASE_FILENAME = STORAGE_PATH + 'database.sqlite3'
 
 HOME_CAP_NAME = 'Home'
 BACKUP_PREFIX = 'backup'
+TRIVIAL_BACKUPS = os.getenv('TRIVIAL_BACKUPS', 'FALSE').upper() == 'TRUE'
 ALLOW_LINKS = os.getenv('ALLOW_LINKS', 'FALSE').upper() == 'TRUE'
 SHOW_BACKUPS_IN_FILES = os.getenv('SHOW_BACKUPS_IN_FILES', 'FALSE').upper() == 'TRUE'
 

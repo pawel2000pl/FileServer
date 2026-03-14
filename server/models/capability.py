@@ -51,7 +51,7 @@ class Capability(MainDatabaseModel):
 
 
     def after_persist(self, cursor=None):
-        for cap in self.query().where('depends_on', self.id).get(cursor):
+        for cap in self.query().where('depends_on', self.id).get():
             if not cap.write or self.write: continue
             cap.persist(cursor, force=True, commit=False)
 
