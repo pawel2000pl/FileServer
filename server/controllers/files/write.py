@@ -5,8 +5,8 @@ import base64
 import configuration
 from time import time
 from html import escape
+from typing import Iterator
 from models import Capability
-from typing import Iterator, Literal
 from libraries.file_view import FileView
 from libraries.storage import StorageEntry, UrlStorage
 
@@ -72,13 +72,16 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
                 if entry.entry_exists(name):
                     raise AlreadyExists()
             
-            add_options: Literal['LINK', 'NONE'] = 'LINK' if data['operation'] == 'copy-links' else 'NONE'
             timestamp = time()
             for name in data['file_list']:
-                entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options=add_options)
                 if data['operation'] == 'cut':
-                    source_entry.remove_entry(name, timestamp)
-
+                    entry.move_entry(source_entry, name, name, timestamp)                
+                elif data['operation'] == 'copy-links':
+                    entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options='LINK')
+                elif data['operation'] == 'copy':
+                    entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options='NONE')                
+                
+                    
         except AlreadyExists:
             yield '<script>alert("Cannot paste: at least one source file has the same name as an existsed file in the destination.");</script>'
         except PermissionError:

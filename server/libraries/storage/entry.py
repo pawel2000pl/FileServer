@@ -236,35 +236,49 @@ class StorageEntry:
                 shutil.copyfile(source, destination)
 
 
+    def get_all_caps(self) -> Iterator[models.Capability]:
+        storage_path = self.get_storage_path()
+        caps1 = models.Capability.query().where('storage_path', storage_path)
+        caps2 = models.Capability.query().where_starts('storage_path', storage_path+os.sep)
+        return chain(caps1, caps2)
+
+
     def remove_entry(self, name: str, timestamp: Union[int, float, None] = None):
         if not self.write: raise PermissionError()
         entry = self.goto(name)
-        self.make_backup(name, timestamp, move=True)
-        storage_path = entry.get_storage_path()
         cursor = models.MainDatabase.get_cursor()
-        models.Capability.query().where('storage_path', storage_path).delete(cursor, commit=False)
-        models.Capability.query().where_starts('storage_path', storage_path+os.sep).delete(cursor, commit=False)
+        for cap in self.goto(name).get_all_caps(): cap.delete(cursor, False)
         cursor.connection.commit()
+        self.make_backup(name, timestamp, move=True)
 
     
     def rename_entry(self, old_name: str, new_name: str, timestamp: Union[int, float, None] = None):
+        self.move_entry(self, old_name, new_name, timestamp)
+
+
+    def move_entry(self, source_entry: 'StorageEntry', source_name: str, dest_name: str, timestamp: Union[int, float, None] = None):
         if not self.write: raise PermissionError()
-        if len({'/', '\\', '~', ':'}.intersection(new_name)): raise PermissionError()
-        if new_name in {'..', '.', '~'}: raise PermissionError()
-        if not self.entry_exists(old_name): raise FileNotFoundError()
+        if not source_entry.write: raise PermissionError()
+        if len({'/', '\\', '~', ':'}.intersection(source_name)): raise PermissionError()
+        if source_name in {'..', '.', '~'}: raise PermissionError()
+        if len({'/', '\\', '~', ':'}.intersection(dest_name)): raise PermissionError()
+        if dest_name in {'..', '.', '~'}: raise PermissionError()
+        if not source_entry.entry_exists(source_name): raise FileNotFoundError()
         if configuration.TRIVIAL_BACKUPS:
-            self.make_backup(old_name, timestamp, move=False)
-        old_entry = self.goto(old_name)
-        base_path = self.get_file_view().__fspath__()+os.sep
-        shutil.move(base_path+old_name, base_path+new_name)
-        new_entry = self.goto(new_name)
+            source_entry.make_backup(source_name, timestamp, move=False)
+        if self.entry_exists(dest_name):
+            self.make_backup(dest_name, timestamp, True)
+
+        old_entry = source_entry.goto(source_name)
+        source_base_path = source_entry.get_file_view().__fspath__()+os.sep
+        dest_base_path = self.get_file_view().__fspath__()+os.sep
+        shutil.move(source_base_path+source_name, dest_base_path+dest_name)
+        new_entry = self.goto(dest_name)
 
         old_storage_path = old_entry.get_storage_path()
         new_storage_path = new_entry.get_storage_path()
         cursor = models.MainDatabase.get_cursor()
-        caps1 = models.Capability.query().where('storage_path', old_storage_path)
-        caps2 = models.Capability.query().where_starts('storage_path', old_storage_path+os.sep)
-        for cap in chain(caps1, caps2):
+        for cap in old_entry.get_all_caps():
             cap.storage_path = new_storage_path + cap.storage_path[len(old_storage_path):]
             cap.persist(cursor, commit=False)
         cursor.connection.commit()
