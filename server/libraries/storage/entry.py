@@ -188,6 +188,9 @@ class StorageEntry:
         if not self.write: raise PermissionError()
         if timestamp is None: timestamp = time()
         source = self.goto(name).get_system_path()
+        if (not configuration.BAKCUP_BACKUPS) and self.path_is_backup():
+            if move: os.remove(source)
+            return
         path = []
         backup_entry = self
         while backup_entry.has_name() and backup_entry.parent is not None and backup_entry.parent.write:
