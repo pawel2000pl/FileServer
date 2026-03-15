@@ -168,3 +168,5 @@ headers.txt
 
 storage/*
 cert/*
+
+deploy.sh

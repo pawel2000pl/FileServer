@@ -1,6 +1,7 @@
 import os
 import flask
 import models
+import tempfile
 import datetime
 import controllers
 import urllib.parse
@@ -19,7 +20,17 @@ application.config["SESSION_COOKIE_SAMESITE"] = 'Lax'
 application.config["SESSION_ID_LENGTH"] = 64
 application.config["MAX_FORM_PARTS"] = configuration.MAX_FORM_PARTS
 application.config["MAX_FORM_MEMORY_SIZE"] = configuration.MAX_FORM_MEMORY_SIZE
+application.config["MAX_CONTENT_LENGTH"] = configuration.MAX_CONTENT_LENGTH
 
+
+def stream_factory(total_content_length, filename, content_type, content_length=None):
+    return tempfile.NamedTemporaryFile(dir=configuration.UPLOAD_TMP_PATH, delete=True)
+
+class CustomRequest(flask.Request):
+    def _get_file_stream(self, total_content_length, content_type, filename=None, content_length=None):
+        return stream_factory(total_content_length, filename, content_type, content_length)
+
+application.request_class = CustomRequest
 
 # Initialize Flask-Session
 flask_session.Session(application)

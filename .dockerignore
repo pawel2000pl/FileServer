@@ -169,3 +169,5 @@ headers.txt
 
 storage/*
 .git
+
+deploy.sh

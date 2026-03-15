@@ -9,12 +9,12 @@ logging.basicConfig(level=logging.WARNING)
 
 SERVER_PATH = os.path.dirname(os.path.abspath(__file__)) + "/"
 MAIN_PATH = SERVER_PATH + '../'
-CERT_PATH = MAIN_PATH + 'cert/'
 STATIC_PATH = SERVER_PATH + 'static/'
 STORAGE_PATH = MAIN_PATH + 'storage/'
-USERS_HOME_STORAGE = 'upload'
+UPLOAD_TMP_PATH = STORAGE_PATH + 'tmp/'
 DATABASE_FILENAME = STORAGE_PATH + 'database.sqlite3'
 
+USERS_HOME_STORAGE = 'upload'
 HOME_CAP_NAME = 'Home'
 BACKUP_PREFIX = 'backup'
 TRIVIAL_BACKUPS = os.getenv('TRIVIAL_BACKUPS', 'FALSE').upper() == 'TRUE'
@@ -39,4 +39,5 @@ COMPRESSION_TIMEOUT = 36*3600
 
 MAX_FORM_PARTS = 16*1024
 MAX_FORM_MEMORY_SIZE = 64*1024
+MAX_CONTENT_LENGTH = 16*1024*1024*1024
 
