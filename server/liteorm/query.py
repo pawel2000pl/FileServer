@@ -264,7 +264,7 @@ class Query(Generic[T]):
 
     def exists(self, cursor=None) -> bool:
         if cursor is None: cursor = self.__model_class.database.get_cursor()
-        sub_sql = self.generate_sql(self.__model_class.get_columns())    
+        sub_sql = self.generate_sql(self.__model_class.get_columns())
         cursor.execute(f'SELECT EXISTS({sub_sql})', self.__params)
         return bool(cursor.fetchone()[0])
 

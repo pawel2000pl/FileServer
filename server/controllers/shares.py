@@ -82,7 +82,7 @@ def render_shared_table(only_shared_with_me: bool, require_depends_on: bool, onl
             capability.delete()
             continue
 
-        if renaming_mode and can_be_renamed and capability.id == rename_id and (capability.user.id == user.id or user.is_admin):            
+        if renaming_mode and can_be_renamed and capability.id == rename_id and (capability.user.id == user.id or user.is_admin):
             capability.name = flask.request.form['new-name']
             capability.persist()
 

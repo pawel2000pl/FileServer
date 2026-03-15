@@ -120,9 +120,9 @@ def download_zipped(entries: list[StorageEntry], download_name: str = 'download'
                 proc.terminate()
                 proc.stdout.flush()
                 proc.wait(5)
-            except subprocess.TimeoutExpired:                
+            except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.stdout.flush()
                 proc.wait(5)
-                
+
 

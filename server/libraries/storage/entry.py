@@ -21,17 +21,17 @@ class StorageEntry:
         self.parent = parent
         self.urlpath = urlpath
         self.read = False
-        self.write = False        
+        self.write = False
         self.__file_view: Union[FileView, DirEntry, None] = fileview
         self.__cached_url: Optional[str] = None
 
-    
+
     def get_name(self) -> str:
         if not self.has_name():
             raise PermissionError()
         return self.urlpath[-1]
 
-    
+
     def has_name(self) -> bool:
         return len(self.urlpath) > 0
 
@@ -206,7 +206,7 @@ class StorageEntry:
                     test_backup_entry = backup_entry.goto(try_name)
                     if test_backup_entry.has_entries():
                         backup_entry = test_backup_entry
-                        break    
+                        break
             except FileNotFoundError:
                 backup_entry.create_dir_entry(subname)
                 backup_entry = backup_entry.goto(subname)
@@ -255,7 +255,7 @@ class StorageEntry:
         cursor.connection.commit()
         self.make_backup(name, timestamp, move=True)
 
-    
+
     def rename_entry(self, old_name: str, new_name: str, timestamp: Union[int, float, None] = None):
         self.move_entry(self, old_name, new_name, timestamp)
 

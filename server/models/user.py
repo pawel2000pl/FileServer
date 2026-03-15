@@ -44,7 +44,7 @@ class User(MainDatabaseModel):
         elif cap is not None:
             cap.delete(cursor, commit=False)
 
-        
+
     def before_delete(self, cursor=None):
         models.Capability.query().where('user', self).delete(cursor, commit=False)
 

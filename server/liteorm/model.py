@@ -316,7 +316,7 @@ class Model:
     def delete(self, cursor=None, commit: Optional[bool] = None):
         cursor = self.database.get_cursor(cursor)
         self.before_delete(cursor)
-        cursor.execute(f'DELETE FROM {self.table_name} WHERE {self.primary_key} = ?', [self.get_pk_val()])        
+        cursor.execute(f'DELETE FROM {self.table_name} WHERE {self.primary_key} = ?', [self.get_pk_val()])
         self.invalidate_cache()
         self.after_delete(cursor)
         if (self.database.autocommit if commit is None else commit):

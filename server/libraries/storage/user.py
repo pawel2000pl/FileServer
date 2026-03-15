@@ -12,7 +12,7 @@ from libraries.filename import assert_filename
 class UserEntry(StorageEntry):
 
     def __init__(self, access_user: models.User, capability: Optional[models.Capability], pathuser: models.User, parent: StorageEntry, urlpath: list[str], storage_path: str, promote_to_write: bool = True, **kwargs):
-        super().__init__(parent, urlpath, **kwargs)        
+        super().__init__(parent, urlpath, **kwargs)
         self.storage_path = storage_path
         view = self.get_file_view()
         view.stat(follow_symlinks=True)
@@ -84,4 +84,3 @@ class UserrootEntry(StorageEntry):
 
     def can_have_backup(self) -> bool:
         return True
-    
