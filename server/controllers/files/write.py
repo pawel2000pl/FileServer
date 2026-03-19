@@ -2,6 +2,7 @@ import os
 import json
 import flask
 import base64
+import tempfile
 import configuration
 from time import time
 from html import escape
@@ -155,10 +156,14 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
                 filename = parts[0] + '(%d)'%i
                 if len(parts) > 1: filename += '.' + parts[1]
                 i += 1
-            temp_filename = entry_system_path + os.sep + base64.b32encode(open('/dev/urandom', 'rb').read(32)).decode('utf-8')
-            file.save(temp_filename)
-            entry.add_entry(filename, temp_filename, timestamp)
-
+            
+            if isinstance(file.stream, tempfile._TemporaryFileWrapper):
+                entry.add_entry(filename, file.stream.name, timestamp, 'MOVE')
+            else:
+                temp_filename = entry_system_path + os.sep + base64.b32encode(open('/dev/urandom', 'rb').read(32)).decode('utf-8')
+                file.save(temp_filename)
+                entry.add_entry(filename, temp_filename, timestamp, 'MOVE')
+            yield f'<!-- File "{escape(filename)}" has been saved successfully -->'
 
 
 
