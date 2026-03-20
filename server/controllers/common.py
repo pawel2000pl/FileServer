@@ -1,5 +1,6 @@
 import flask
 import base64
+from time import time
 from models import User
 from html import escape
 from typing import Union
@@ -43,6 +44,7 @@ def render_header():
     user_id = flask.session.get('user_id', None)
     user = User(id=user_id) if user_id else None
     user_name = escape('Logged as: '+user.name) if user is not None else '<a href="/login">Login</a>'
+    server_time = " ".join(format_date_and_time(time()))
     message = flask.request.args.get('message', '')
     is_error = 'msg_error' in flask.request.args
     style = 'color: red;' if is_error else ''
@@ -50,6 +52,7 @@ def render_header():
     <div style="{style}" class="filters-form-div">
         <span style="float:left;">{escape(message)}</span>
         <span style="float:right;">{user_name}</span>
+        <span style="float:right;padding-right:24px;opacity:50%;">{server_time}</span>
     </div>
     '''
 

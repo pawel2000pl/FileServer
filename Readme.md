@@ -13,23 +13,26 @@ Example of `fstab` entry for binding a single directory:
 
 ## Running
 
-Debugging without docker
+### Debugging without docker
 ~~~
 cd server
 gunicorn main:application
 ~~~
 
-Production without docker
+### Production without docker
 ~~~
 cd server
 gunicorn main:application
 ~~~
 
-Production with docker (modify ports or storage path)
+### Production with docker (modify ports or storage path)
 ~~~
 docker build -t file_server .
 docker run --rm -d -p 443:443 -p 80:80 --mount type=bind,src=storage_on_host,dst=/app/storage --name file_server file_server
-
-# or:
-# docker run --rm -d -p 43443:443 -p 8080:80 --mount type=bind,src=storage_on_host,dst=/app/storage --name file_server file_server
 ~~~
+
+Mounts parameters for sessions directory:<br>
+`--mount type=bind,src=/tmp/sessions,dst=/tmp/flask_sessions`
+
+Mounts parameters for the same timezone as host:<br>
+`--mount type=bind,src=/etc/timezone,ro,dst=/etc/timezone --mount type=bind,src=/etc/localtime,ro,dst=/etc/localtime`
