@@ -15,7 +15,7 @@ def render_file(storage_entry: StorageEntry) -> Iterator[str]:
     mime = get_mimetype(extension)
     stat = storage_entry.get_file_view().stat()
 
-    yield f'<a class="download-btn" href="{download_url}&save=True">Download</a>'
+    yield f'<a href="{download_url}&save=True">Download</a><br>'
     yield f'<span class="modified-span">Modified: {escape(format_datetime(stat.st_mtime))}</span><br/>'
     yield f'<span class="size-span">File size: {format_size(stat.st_size)}</span><br/>'
     yield f'<span class="mime-span">File type: {mime}</span><br/>'
@@ -40,4 +40,4 @@ def render_file(storage_entry: StorageEntry) -> Iterator[str]:
     else:
         show_new_tab_link = False
     if show_new_tab_link:
-        yield f'<a class="preview preview-link" target="_blank" href="{download_url}">Open in a new tab</a>'
+        yield f'<a class="preview-link" target="_blank" href="{download_url}">Open in a new tab</a>'

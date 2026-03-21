@@ -129,24 +129,22 @@ a {
 }
 
 
-.download-btn {
-    display: block;
-}
-
-
 .preview {
     width: 100%;
     display: block;
 }
 
+
 video {
     background-color: black;
 }
+
 
 .link-like-button {
     cursor: pointer;
     text-decoration: underline;
 }
+
 
 .share-panel {
     border-width: 1px;
@@ -154,11 +152,13 @@ video {
     padding-top: 0px;
 }
 
+
 .close-modal-btn {
     cursor: pointer;
     float: right;
     opacity: 75%;
 }
+
 
 .file-tool-panel {
     display: flex;
@@ -166,6 +166,7 @@ video {
     flex-wrap: wrap;
     gap: 8px;
 }
+
 
 .share-manual {
     font-size: small;
@@ -192,6 +193,7 @@ video {
     max-width: 100%;
 }
 
+
 .logo-cell span {
     font-size: 1.3em;
     margin: 12px;
@@ -199,10 +201,12 @@ video {
     position: absolute;
 }
 
+
 .files-legend {
     display: block;
     margin: 12px;
 }
+
 
 .files-legend ul {
     margin-top: 2px;
