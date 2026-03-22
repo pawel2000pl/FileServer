@@ -78,7 +78,8 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
                 elif data['operation'] == 'copy-links':
                     entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options='LINK')
                 elif data['operation'] == 'copy':
-                    entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options='NONE')
+                    entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options='NONE')                
+                yield f'<!-- Entry "{escape(name)}" has been saved successfully -->'
 
 
         except FileExistsError:
