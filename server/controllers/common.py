@@ -50,7 +50,7 @@ def render_header():
     style = 'color: red;' if is_error else ''
     yield f'''
     <div style="{style}" class="filters-form-div">
-        <span style="float:left;">{escape(message)}</span>
+        <span id="message_span" style="float:left;">{escape(message)}</span>
         <span style="float:right;">{user_name}</span>
         <span style="float:right;padding-right:24px;opacity:50%;">{server_time}</span>
     </div>

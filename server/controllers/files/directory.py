@@ -3,6 +3,7 @@ import json
 import time
 import flask
 import models
+import shutil
 import configuration
 from html import escape
 from urllib.parse import quote
@@ -66,9 +67,13 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
     for entry in storage_entry.scan_entries():
         type_str = ''
         name = entry.get_name()
-        if deleting_mode and 'file:'+name in flask.request.form:
-            storage_entry.remove_entry(name, timestamp)
-            continue
+        try:
+            if deleting_mode and 'file:'+name in flask.request.form:
+                storage_entry.remove_entry(name, timestamp)
+                continue
+        except shutil.Error:
+            yield '<script>alert("Cannot delete some entries.");</script>'
+            deleting_mode = False
         view = entry.get_file_view()
         if view.is_file(): type_str += 'F'
         if view.is_dir(): type_str += 'D'

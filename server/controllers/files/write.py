@@ -2,6 +2,7 @@ import os
 import json
 import flask
 import base64
+import shutil
 import tempfile
 import configuration
 from time import time
@@ -11,10 +12,6 @@ from models import Capability
 from libraries.file_view import FileView
 from libraries.filename import assert_filename
 from libraries.storage import StorageEntry, UrlStorage
-
-
-class AlreadyExists(Exception):
-    pass
 
 
 def render_write(entry: StorageEntry) -> Iterator[str]:
@@ -72,7 +69,7 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
                 if not source_entry.entry_exists(name):
                     raise FileNotFoundError()
                 if entry.entry_exists(name):
-                    raise AlreadyExists()
+                    raise FileExistsError()
 
             timestamp = time()
             for name in data['file_list']:
@@ -84,12 +81,14 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
                     entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options='NONE')
 
 
-        except AlreadyExists:
+        except FileExistsError:
             yield '<script>alert("Cannot paste: at least one source file has the same name as an existsed file in the destination.");</script>'
         except PermissionError:
             yield '<script>alert("Cannot paste: you have no access for removing files from destination.");</script>'
         except FileNotFoundError:
             yield '<script>alert("Cannot paste: at least one source file does not exist.");</script>'
+        except shutil.Error:
+            yield '<script>alert("Cannot paste: maybe you tried to move a directory into itself.");</script>'
         except:
             yield '<script>alert("Cannot paste: invalid request.");</script>'
 
@@ -130,10 +129,10 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
         new_name = flask.request.form['new-name']
         try:
             assert_filename(new_name)
-            if entry.entry_exists(new_name): raise AlreadyExists()
+            if entry.entry_exists(new_name): raise FileExistsError()
             new_dir = entry_system_path + os.sep + new_name
             os.mkdir(new_dir)
-        except AlreadyExists:
+        except FileExistsError:
             yield '<script>alert("Cannot create a directory: there is already a file or a directory with the same name.");</script>'
         except PermissionError:
             yield '<script>alert("Cannot create a directory: invalid name");</script>'
