@@ -144,7 +144,7 @@ class StorageEntry:
                         continue
                     if view.is_file() != self.get_file_view().is_file():
                         continue
-                if not view.name.startswith(configuration.BACKUP_PREFIX):
+                if not entry.is_backup():
                     continue
                 for sub in self.goto(entry.get_name()).__scan_backups(names_path):
                     yield sub
@@ -162,7 +162,7 @@ class StorageEntry:
         path.reverse()
         names = [e.get_name() for e in path]
         for backup in search_root.__scan_backups(names):
-            if backup.generate_url() == self.generate_url(): continue
+            if backup.generate_url() == self.generate_url(): continue            
             yield backup
 
 
@@ -216,8 +216,10 @@ class StorageEntry:
         else:
             if os.path.isdir(source):
                 shutil.copytree(source, destination)
+                os.chmod(destination, mode=configuration.DEFAULT_DIR_PERMISSIONS, follow_symlinks=False)
             else:
                 shutil.copyfile(source, destination)
+                os.chmod(destination, mode=configuration.DEFAULT_PERMISSIONS, follow_symlinks=False)
 
 
     def add_entry(self, name: str, source: str, timestamp: Union[int, float, None] = None, options: Literal['MOVE', 'LINK', 'NONE'] = 'MOVE'):
@@ -236,8 +238,10 @@ class StorageEntry:
         else:
             if os.path.isdir(source):
                 shutil.copytree(source, destination)
+                os.chmod(destination, mode=configuration.DEFAULT_DIR_PERMISSIONS, follow_symlinks=False)
             else:
                 shutil.copyfile(source, destination)
+                os.chmod(destination, mode=configuration.DEFAULT_PERMISSIONS, follow_symlinks=False)
 
 
     def get_all_caps(self) -> Iterator[models.Capability]:
@@ -274,7 +278,12 @@ class StorageEntry:
         old_entry = source_entry.goto(source_name)
         source_base_path = source_entry.get_file_view().__fspath__()+os.sep
         dest_base_path = self.get_file_view().__fspath__()+os.sep
-        shutil.move(source_base_path+source_name, dest_base_path+dest_name)
+        destination_path = dest_base_path+dest_name
+        shutil.move(source_base_path+source_name, destination_path)
+        if os.path.isdir(destination_path):
+            os.chmod(destination_path, mode=configuration.DEFAULT_DIR_PERMISSIONS, follow_symlinks=False)
+        else:
+            os.chmod(destination_path, mode=configuration.DEFAULT_PERMISSIONS, follow_symlinks=False)
         new_entry = self.goto(dest_name)
 
         old_storage_path = old_entry.get_storage_path()
