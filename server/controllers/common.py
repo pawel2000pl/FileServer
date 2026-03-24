@@ -11,6 +11,7 @@ STYLES_CONTENT = ''
 STYLES_COLORS_CONTENT = ''
 TABLES_UTILS_CONTENT = ''
 LOGO_SRC = '/static/favicon.svg'
+MAX_MESSAGE_LENGTH = 2048
 
 
 if INCLUDE_STATIC:
@@ -46,6 +47,7 @@ def render_header():
     user_name = escape('Logged as: '+user.name) if user is not None else '<a href="/login">Login</a>'
     server_time = " ".join(format_date_and_time(time()))
     message = flask.request.args.get('message', '')
+    if len(message) > MAX_MESSAGE_LENGTH: message = ''
     is_error = 'msg_error' in flask.request.args
     style = 'color: red;' if is_error else ''
     yield f'''

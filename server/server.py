@@ -9,6 +9,8 @@ import configuration
 import flask_session
 import response_stream
 from libraries.mime import get_mimetype
+from libraries.filename import check_path
+
 
 application = flask.Flask(__name__)
 application.config["SESSION_PERMANENT"] = True
@@ -92,8 +94,7 @@ def logout():
 def userfile(path):
     path = list(filter(lambda s: len(s), path.split('/')))
     if len(path) < 1: raise response_stream.HTTPError(400, 'Bad request: path too short')
-    if '..' in path or '.' in path: raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
-    if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
+    if not check_path(path): raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
     return controllers.files.make_request(['userfile'] + path)
 
 
@@ -103,8 +104,7 @@ def userfile(path):
 def tokenfile(path):
     path = list(filter(lambda s: len(s), path.split('/')))
     if len(path) < 1: raise response_stream.HTTPError(400, 'Bad request: path too short')
-    if '..' in path or '.' in path: raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
-    if any(map(lambda s: '/' in s or '\\' in s or s == '', path)): raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
+    if not check_path(path): raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
     return controllers.files.make_request(['tokenfile'] + path)
 
 

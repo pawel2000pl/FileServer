@@ -8,9 +8,9 @@ from os import DirEntry
 from itertools import chain
 from urllib.parse import quote
 from libraries.file_view import FileView
-from libraries.filename import assert_filename
 from libraries.file_loop import is_filesystem_loop
 from typing import Optional, Iterator, Union, Literal
+from libraries.filename import assert_filename, check_filename
 from configuration import ALLOW_LINKS, BACKUP_PREFIX, SHOW_BACKUPS_IN_FILES
 
 
@@ -106,6 +106,8 @@ class StorageEntry:
         if not self.has_entries():
             raise PermissionError()
         for entry in os.scandir(self.get_file_view().__fspath__()):
+            if not check_filename(entry.name):
+                continue
             if entry.is_symlink():
                 if not ALLOW_LINKS:
                     continue
@@ -133,6 +135,8 @@ class StorageEntry:
                 yield sub
         for entry in self.scan_entries(include_backups=True, promote_to_write=False):
             view = entry.get_file_view()
+            if not check_filename(view.name):
+                continue
             try:
                 if len(names_path) > 0:
                     if view.name == names_path[0]:
@@ -186,6 +190,7 @@ class StorageEntry:
 
     def make_backup(self, name: str, timestamp: Union[int, float, None] = None, move: bool = True):
         if not self.write: raise PermissionError()
+        if not check_filename(name): raise PermissionError()
         if timestamp is None: timestamp = time()
         source = self.goto(name).get_system_path()
         if (not configuration.BAKCUP_BACKUPS) and self.path_is_backup():
@@ -225,6 +230,7 @@ class StorageEntry:
     def add_entry(self, name: str, source: str, timestamp: Union[int, float, None] = None, options: Literal['MOVE', 'LINK', 'NONE'] = 'MOVE'):
         if not self.write: raise PermissionError()
         if not self.has_entries(): raise PermissionError()
+        if not check_filename(name): raise PermissionError()
         if options == 'LINK' and not configuration.ALLOW_LINKS: raise PermissionError()
         try:
             self.make_backup(name, timestamp, move=True)
@@ -253,6 +259,7 @@ class StorageEntry:
 
     def remove_entry(self, name: str, timestamp: Union[int, float, None] = None):
         if not self.write: raise PermissionError()
+        if not check_filename(name): raise PermissionError()
         entry = self.goto(name)
         cursor = models.MainDatabase.get_cursor()
         for cap in self.goto(name).get_all_caps(): cap.delete(cursor, False)
@@ -267,6 +274,8 @@ class StorageEntry:
     def move_entry(self, source_entry: 'StorageEntry', source_name: str, dest_name: str, timestamp: Union[int, float, None] = None):
         if not self.write: raise PermissionError()
         if not source_entry.write: raise PermissionError()
+        if not check_filename(source_name): raise PermissionError()
+        if not check_filename(dest_name): raise PermissionError()
         assert_filename(source_name)
         assert_filename(dest_name)
         if not source_entry.entry_exists(source_name): raise FileNotFoundError()

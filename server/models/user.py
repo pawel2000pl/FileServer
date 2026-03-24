@@ -5,6 +5,7 @@ import liteorm
 import configuration
 from time import time
 from models import MainDatabaseModel
+from libraries.filename import PROHIBITED_CHARS
 
 
 class User(MainDatabaseModel):
@@ -22,8 +23,8 @@ class User(MainDatabaseModel):
 
 
     def before_persist(self, cursor=None):
-        self.name = self.name.replace('/', '')
-        self.name = self.name.replace('\\', '')
+        for c in PROHIBITED_CHARS:
+            self.name = self.name.replace(c, '')
         while '..' in self.name: self.name = self.name.replace('..', '.')
 
 
