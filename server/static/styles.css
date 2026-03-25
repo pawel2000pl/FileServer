@@ -135,6 +135,11 @@ a {
 }
 
 
+.text-preview {
+    min-height: 50vh;
+}
+
+
 video {
     background-color: black;
 }

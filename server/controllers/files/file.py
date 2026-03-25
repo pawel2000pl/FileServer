@@ -24,7 +24,7 @@ def render_file(storage_entry: StorageEntry) -> Iterator[str]:
 
     show_new_tab_link = True
     if mime.startswith('text/') or mime == 'application/json' or mime == 'application/xml':
-        yield '<textarea class="preview" readonly="readonly">'
+        yield '<textarea class="preview text-preview" readonly="readonly">'
         with open(system_path) as f:
             line = ' '
             while len(line) > 0:

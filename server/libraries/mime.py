@@ -17,6 +17,7 @@ EXTENSION_TO_CONTENT_TYPE: Dict[str, str] = {
     'json': 'application/json',
     'map': 'application/json',
     'xml': 'application/xml',
+    'ass': 'text/plain',
     # Images
     'jpg': 'image/jpeg',
     'jpeg': 'image/jpeg',
@@ -50,7 +51,6 @@ EXTENSION_TO_CONTENT_TYPE: Dict[str, str] = {
     'flac': 'audio/flac',
     'm4a': 'audio/mp4',
     'weba': 'audio/webm',
-    'ass': 'audio/aac',
     'adts': 'audio/aac',
     'rst': 'text/x-rst',
     'loas': 'audio/aac',
@@ -207,8 +207,8 @@ EXTENSION_TO_CONTENT_TYPE: Dict[str, str] = {
 
 def get_mimetype(extension: str) -> str:
     if extension.startswith('.'): extension = extension[1:]
-    default = mimetypes.types_map.get('.'+extension, None)
+    default = EXTENSION_TO_CONTENT_TYPE.get(extension, None)
     if default is not None: return default
-    return EXTENSION_TO_CONTENT_TYPE.get(extension, 'application/octet-stream')
+    return mimetypes.types_map.get('.'+extension, 'application/octet-stream')
 
 
