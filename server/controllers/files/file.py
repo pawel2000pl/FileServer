@@ -25,11 +25,17 @@ def render_file(storage_entry: StorageEntry) -> Iterator[str]:
     show_new_tab_link = True
     if mime.startswith('text/') or mime == 'application/json' or mime == 'application/xml':
         yield '<textarea class="preview text-preview" readonly="readonly">'
-        with open(system_path) as f:
-            line = ' '
-            while len(line) > 0:
-                line = f.read(1024)
-                yield escape(line)
+        try:
+            line = b''
+            with open(system_path, 'rb') as f:
+                for _ in range(configuration.MAX_TEXT_PREVIEW_BUFFERS):
+                    line = f.read(configuration.BUFFER_SIZE)
+                    yield escape(line.decode('utf-8'))
+                    if len(line) != configuration.BUFFER_SIZE: break
+                else:
+                    yield escape(' <<<<<<<<<<<< More characters unavaiable in the preview mode >>>>>>>>>>>> ')
+        except UnicodeDecodeError:
+            yield escape(' <<<<<<<<<<<< Encoding error: invalid characters >>>>>>>>>>>> ')
         yield '</textarea>'
     elif mime.startswith('image/'):
         yield f'<image class="preview" src="{download_url}" alt="Cannot load the image"/>'
