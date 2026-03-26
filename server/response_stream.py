@@ -6,6 +6,7 @@ from functools import wraps
 from itertools import chain
 from dataclasses import dataclass
 from typing import Iterator, Union, Any, Optional
+from configuration import TRACEBACKS_ON_KNOWN_ERRORS
 
 
 logger = logging.getLogger(__name__)
@@ -47,8 +48,6 @@ def to_bytes(value: ResponseStreamValue) -> bytes:
     assert False
 
 
-
-
 def consume_response(rs: ResponseStream) -> flask.Response:
     response = flask.Response()
     try:
@@ -73,18 +72,19 @@ def consume_response(rs: ResponseStream) -> flask.Response:
     except HTTPError as e:
         response.status_code = e.code
         response.response = e.reason if e.reason is not None else ''
-        logger.error(repr(e)+"\n" +traceback.format_exc())
+        if TRACEBACKS_ON_KNOWN_ERRORS: logger.error(repr(e)+"\n" +traceback.format_exc())
         return response
     except PermissionError:
-        logger.error(traceback.format_exc())
+        if TRACEBACKS_ON_KNOWN_ERRORS: logger.error(traceback.format_exc())
         return flask.Response(status=403, response='Forbidden')
     except FileNotFoundError:
-        logger.error(traceback.format_exc())
+        if TRACEBACKS_ON_KNOWN_ERRORS: logger.error(traceback.format_exc())
         return flask.Response(status=404, response='Not found')
     except liteorm.RecordNotFound:
-        logger.error(traceback.format_exc())
+        if TRACEBACKS_ON_KNOWN_ERRORS: logger.error(traceback.format_exc())
         return flask.Response(status=404, response='Not found')
     except ValueError:
+        if TRACEBACKS_ON_KNOWN_ERRORS: logger.error(traceback.format_exc())
         return flask.Response(status=400, response='Bad request')
     except Exception as err:
         logger.error(traceback.format_exc())
