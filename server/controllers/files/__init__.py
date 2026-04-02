@@ -26,7 +26,7 @@ def content_factory(storage_entry: StorageEntry) -> Iterator[str]:
     path_htmls = []
     se: Optional[StorageEntry] = storage_entry
     while se is not None and se.has_name():
-        path_htmls.append(f'<a href={escape(se.generate_url())}>{escape(se.get_name())}</a>')
+        path_htmls.append(f'<a href="{escape(se.generate_url())}">{escape(se.get_name())}</a>')
         se = se.parent
     path_html = '/'.join(path_htmls[::-1][1:])
 
