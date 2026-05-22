@@ -1,13 +1,37 @@
+:root {
+    --color-0: rgb(180, 208, 255);
+    --color-1: rgba(51, 72, 96, 0.575);
+    --color-2: rgba(71, 95, 123, 0.575);
+    --color-3: rgba(82, 99, 134, 0.575);
+    --color-4: rgba(95, 120, 157, 0.575);
+    --color-5: rgba(105, 133, 186, 0.575);
+    --color-6: rgba(25, 36, 48, 0.575);
+
+    --color-1-no-op: rgb(51, 72, 96);
+}
+
+
 body {
-    background-image: radial-gradient(circle at right bottom, rgb(204, 244, 255), rgb(183, 239, 255), rgb(94, 204, 255));
+    background-color: var(--color-1-no-op);
+    background-image: url(/background.svg);
     background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+}
+
+body,
+dialog {
+    color: var(--color-0);
+    text-shadow: 0px 0px 4px var(--color-1-no-op);
 }
 
 
 dialog {
-    border: 5px solid rgb(130, 130, 250);
+    border: 5px solid var(--color-1);
     border-radius: 15px;
-    background-color: rgb(149, 175, 255);
+    background-color: var(--color-2);
+    backdrop-filter: blur(6px);
 }
 
 
@@ -16,48 +40,55 @@ dialog {
 .content-table tr td,
 .content-table tr th {
     border-style: none;
+    backdrop-filter: blur(6px);
+
 }
 
 .content-table th {
-    background-color: rgb(149, 175, 255);
+    background-color: var(--color-2);
 }
 
 .content-table th:hover {
-    background-color: rgb(130, 130, 250);
+    background-color: var(--color-1);
 }
 
 
 .content-table td {
-    background-color: rgb(185, 209, 255);
+    background-color: var(--color-5);
 }
 
 .content-table tr:nth-child(2n) td {
-    background-color: rgb(158, 192, 255);
+    background-color: var(--color-3);
 }
 
 .content-table tr:hover td {
-    background-color: rgb(175, 200, 255);
+    background-color: var(--color-4);
 }
 
 
 @media (min-width: 768px) {
+
+    .content-table,
     .content-table tr:last-child,
     .content-table th:first-child,
     .content-table .header td:first-child {
         border-top-left-radius: 10px;
     }
 
+    .content-table,
     .content-table tr:last-child,
     .content-table th:last-child,
     .content-table .header td:last-child {
         border-top-right-radius: 10px;
     }
 
+    .content-table,
     .content-table tr:last-child,
     .content-table tr:last-child td:first-child {
         border-bottom-left-radius: 10px;
     }
 
+    .content-table,
     .content-table tr:last-child,
     .content-table tr:last-child td:last-child {
         border-bottom-right-radius: 10px;
@@ -66,12 +97,15 @@ dialog {
 
 
 @media (max-width: 767px) {
+
+    .content-table,
     .content-table tr:last-child,
     .content-table th:first-child,
     .content-table .header td:first-child {
         border-top-left-radius: 10px;
     }
 
+    .content-table,
     .content-table tr:last-child,
     .content-table th:last-child,
     .content-table th:where(.last-on-mobile),
@@ -80,11 +114,13 @@ dialog {
         border-top-right-radius: 10px;
     }
 
+    .content-table,
     .content-table tr:last-child,
     .content-table tr:last-child td:first-child {
         border-bottom-left-radius: 10px;
     }
 
+    .content-table,
     .content-table tr:last-child,
     .content-table tr:last-child td:last-child,
     .content-table tr:last-child td:where(.last-on-mobile) {
@@ -93,12 +129,26 @@ dialog {
 }
 
 
+.menu-header {
+    border-radius: 10px;
+    background-color: var(--color-2);
+    backdrop-filter: blur(6px);
+    width: calc(100% - 12px);
+    display: inline-block;
+    margin-bottom: 24px;
+    font-weight: bolder;
+    padding: 2px 6px;
+    cursor: pointer;
+}
+
 
 .file-header .file-title {
     border-radius: 10px;
     border-bottom-left-radius: 0px;
-    background-color: rgb(149, 175, 255);
-    padding: 10px
+    background-color: var(--color-2);
+    padding: 10px;
+    backdrop-filter: blur(6px);
+
 }
 
 
@@ -106,8 +156,80 @@ dialog {
     border-radius: 10px;
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
-    background-color: rgb(185, 209, 255);
+    background-color: var(--color-5);
     padding: 10px;
     width: max-content;
     min-width: 30%;
+    backdrop-filter: blur(6px);
+}
+
+input[type="checkbox"] {
+    width: 1.2em;
+    height: 1.2em;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: var(--color-0);
+    border: 1px solid var(--color-1);
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    margin: 0px;
+    vertical-align: center;
+}
+
+
+input[type="checkbox"]:checked {
+    background-color: var(--color-6);
+    border: 1px solid var(--color-1);
+}
+
+
+input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0px;
+    width: 3px;
+    height: 10px;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+    border-color: white;
+    border-style: solid;
+}
+
+
+button,
+input[type=submit],
+input,
+textarea {
+    cursor: pointer;
+    background-color: var(--color-1);
+    border: 1.2px solid var(--color-1);
+    border-radius: 8px;
+    padding: 3px 6px;
+    color: var(--color-0);
+    backdrop-filter: blur(6px);
+}
+
+
+button:hover,
+input[type=submit]:hover {
+    background-color: var(--color-6);
+}
+
+
+button:disabled,
+input[type=submit]:disabled,
+input:disabled,
+textarea:disabled {
+    background-color: var(--color-2);
+    opacity: 50%;
+    backdrop-filter: blur(6px);
+}
+
+input,
+input[type=text],
+input[type=password] {
+    cursor: text;
 }

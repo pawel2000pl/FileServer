@@ -66,8 +66,32 @@ def render_menu():
 
     if user is not None:
         home_display = '' if user.use_home and user.has_home() else 'style="display: none;"'
-        yield f'''
-        <table class="content-table menu-section">
+        yield '''
+        <span class="menu-header" onclick="
+            menuVisibility[menuVisibilityMode] = !menuVisibility[menuVisibilityMode];
+            const currentVisibility = menuVisibility[menuVisibilityMode];
+            Array.from(document.getElementsByClassName('menu-section')).forEach((element) => {                
+                element.style.display = currentVisibility ? 'table' : 'none';
+            })
+            ">Menu</span>
+        <script>
+            var menuVisibility = { true: true, false: false };
+            var menuVisibilityMode = null;
+            const resizeMenu = () => {
+                if (menuVisibilityMode === null) menuVisibilityMode = document.body.clientWidth >= 768;
+                else if (menuVisibilityMode && document.body.clientWidth < 768) menuVisibilityMode = false;
+                else if (!menuVisibilityMode && document.body.clientWidth >= 768) menuVisibilityMode = true;                
+                else return;
+                const currentVisibility = menuVisibility[menuVisibilityMode];
+                Array.from(document.getElementsByClassName('menu-section')).forEach((element) => {
+                    element.style.display = currentVisibility ? 'table' : 'none';
+                });
+            };
+            window.addEventListener('load', resizeMenu);
+            window.addEventListener('resize', resizeMenu);
+        </script>
+        '''
+        yield f'''<table class="content-table menu-section">
             <thead><tr><th>Files</th></tr></thead>
             <tbody>
                 <tr {home_display}><td><a href="/userfile/{escape(user.name)}/{escape(HOME_CAP_NAME)}">Home</a></td></tr>

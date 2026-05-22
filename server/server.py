@@ -63,6 +63,20 @@ def env():
     yield open(configuration.STATIC_PATH+'env.txt', 'rb').read()
 
 
+@application.route('/robots.txt')
+@response_stream.http_response
+def robots():
+    yield response_stream.ResponseHeader('Content-Type', 'text/plain; charset=utf-8')
+    yield open(configuration.STATIC_PATH+'robots.txt', 'rb').read()
+
+
+@application.route('/background.svg')
+@response_stream.http_response
+def background():
+    yield response_stream.ResponseHeader('Content-Type', 'image/svg+xml')
+    yield open(configuration.STATIC_PATH+'background.svg', 'rb').read()
+
+
 @application.route('/static/<string:filename>')
 @response_stream.http_response
 def styles(filename):

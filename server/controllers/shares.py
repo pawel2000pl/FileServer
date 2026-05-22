@@ -149,8 +149,8 @@ def render_create_share_for(storage_entry: StorageEntry) -> Iterator[str]:
     yield f'''
     <span onclick="share_panel.showModal()" class="link-like-button">Share</span>
     <dialog id="share_panel" class="share-panel">
+        <span class="close-modal-btn" onclick="share_panel.close()">Close</span>
         <form action="/create_share" method="post">
-            <span class="close-modal-btn" onclick="share_panel.close()">Close</span>
             <p>
                 <span>Share name</span><br/>
                 <input name="share-name" value="{escape(entry_name)}"/>

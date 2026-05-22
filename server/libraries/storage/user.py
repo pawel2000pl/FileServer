@@ -74,7 +74,7 @@ class UserrootEntry(StorageEntry):
                 continue
             try:
                 yield UserEntry(self.access_user, cap, self.pathuser, self, self.urlpath+[cap.name], cap.storage_path, **kwargs)
-            except PermissionError:
+            except (PermissionError, FileNotFoundError):
                 continue
 
 

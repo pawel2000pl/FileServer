@@ -126,6 +126,8 @@ function makeDynamicTable(table) {
             if (all_rows.length <= auto_search_limit)
                 filterRows();
         }
+        input_search.placeholder = 'Enter a phrase to search';
+
         span_action_search.onclick = filterRows;
         span_action_search.textContent = unicode_search_action;
         span_action_search.title = 'Filter';
@@ -177,9 +179,9 @@ function makeDynamicTable(table) {
         span_options.appendChild(search_span);
 
         const search_mode_span = document.createElement('span');
-        th.search_mode = 0;
-        search_mode_span.textContent = String.fromCharCode(8838);
-        search_mode_span.title = 'starts with';
+        th.search_mode = 1;
+        search_mode_span.textContent = String.fromCharCode(8834);
+        search_mode_span.title = 'contains';
         search_mode_span.onclick = () => {
             th.search_mode = (th.search_mode + 1) % 9;
             if (th.search_mode == 0) {

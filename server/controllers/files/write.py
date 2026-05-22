@@ -99,8 +99,17 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
         <dialog id="file_upload_dialog">
             <span class="close-modal-btn" onclick="file_upload_dialog.close()">Close</span>
             <form action="#" method="POST" enctype="multipart/form-data">
-                <p>
-                    <input type="file" name="files" multiple />
+                <p style="text-wrap: nowrap;">
+                    <button onclick="event.preventDefault(); file_picker.click();">Select files...</button>
+                    <span id="selected_files_count">No files selected</span>
+                    <input id="file_picker" style="display:none;" type="file" name="files" multiple onchange="
+                        if (file_picker.files.length == 0)
+                            selected_files_count.textContent = 'No files selected';
+                        else if (file_picker.files.length == 1)
+                            selected_files_count.textContent = 'Selected 1 file';
+                        else
+                            selected_files_count.textContent = `Selected ${file_picker.files.length} files`;
+                    " />
                     <br/>
                     <input id="overwrite" type="checkbox" name="overwrite" checked/>
                     <label for="overwrite">Overwrite</label>

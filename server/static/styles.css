@@ -92,7 +92,7 @@ a {
 .content-table th {
     padding-left: 5px;
     padding-right: 5px;
-    word-wrap: break-word; 
+    word-wrap: break-word;
     /* text-wrap: nowrap; */
 }
 
@@ -151,17 +151,13 @@ video {
 }
 
 
-.share-panel {
-    border-width: 1px;
-    border-style: solid;
-    padding-top: 0px;
-}
-
-
 .close-modal-btn {
     cursor: pointer;
     float: right;
     opacity: 75%;
+    position: relative;
+    top: -12px;
+    left: 6px;
 }
 
 
