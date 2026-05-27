@@ -227,6 +227,15 @@ class StorageEntry:
                 os.chmod(destination, mode=configuration.DEFAULT_PERMISSIONS, follow_symlinks=False)
 
 
+    def make_action_backup(self, action: str, content: str, timestamp: Union[int, float, None] = None):
+        if not self.write: raise PermissionError()
+        if timestamp is None: timestamp = time()
+        timestamp_str = datetime.datetime.fromtimestamp(timestamp).strftime('%Y%m%d%H%M%S%f')
+        filename = "at_%s_%s.txt" % (timestamp_str, action)
+        with open(self.get_system_path() + os.sep + filename, 'w') as f: f.write(content)
+        self.make_backup(filename, timestamp, True)
+
+
     def add_entry(self, name: str, source: str, timestamp: Union[int, float, None] = None, options: Literal['MOVE', 'LINK', 'NONE'] = 'MOVE'):
         if not self.write: raise PermissionError()
         if not self.has_entries(): raise PermissionError()
@@ -281,6 +290,15 @@ class StorageEntry:
         if not source_entry.entry_exists(source_name): raise FileNotFoundError()
         if configuration.TRIVIAL_BACKUPS:
             source_entry.make_backup(source_name, timestamp, move=False)
+        else:
+            content = 'Source:      %s/%s\nUnquotted name: %s\nDestination: %s/%s\nUnquotted name: %s\n' % (
+                source_entry.generate_url(), 
+                quote(source_name), 
+                source_name,
+                self.generate_url(), 
+                quote(dest_name),
+                dest_name)
+            source_entry.make_action_backup('move', content, timestamp)
         if self.entry_exists(dest_name):
             self.make_backup(dest_name, timestamp, True)
 

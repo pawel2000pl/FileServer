@@ -1,5 +1,7 @@
 # Simple file server
 
+![screenshot](./doc/image.png)
+
 ## Preparing the environment
 
 First you need to add certificates to the `deploy/cert` directory.<br/>

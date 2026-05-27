@@ -10,11 +10,12 @@ logging.basicConfig(level=logging.WARNING)
 SERVER_PATH = os.path.dirname(os.path.abspath(__file__)) + "/"
 MAIN_PATH = SERVER_PATH + '../'
 STATIC_PATH = SERVER_PATH + 'static/'
-STORAGE_PATH = MAIN_PATH + 'storage/'
-UPLOAD_TMP_PATH = STORAGE_PATH + 'tmp/'
-DATABASE_FILENAME = STORAGE_PATH + 'database.sqlite3'
+STORAGE_PATH = os.getenv('STORAGE_PATH', MAIN_PATH + 'storage/')
+UPLOAD_TMP_PATH = os.getenv('UPLOAD_TMP_PATH', STORAGE_PATH + 'upload/')
+SESSION_DIR = os.getenv('SESSION_DIR', STORAGE_PATH + "/sessions")
+DATABASE_FILENAME = os.getenv('DATABASE_FILENAME', STORAGE_PATH + 'database/database.sqlite3')
 
-USERS_HOME_STORAGE = 'upload'
+USERS_HOME_STORAGE = os.getenv('USERS_HOME_NAME', 'fileserver_home')
 HOME_CAP_NAME = 'Home'
 BACKUP_PREFIX = 'backup'
 TRIVIAL_BACKUPS = os.getenv('TRIVIAL_BACKUPS', 'FALSE').upper() == 'TRUE'
@@ -37,7 +38,6 @@ MAX_DOWNLOAD_RATE = 64*1024*1024
 LAZY_LOADING_SIZE = 4*1024*1024
 SESSION_CLEANUP_INTERVAL = 3600
 SESSION_EXPIRES = 3600*24*7
-SESSION_DIR = "/tmp/flask_sessions"
 COMPRESSION_TIMEOUT = 36*3600
 
 MAX_FORM_PARTS = 16*1024

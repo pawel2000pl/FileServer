@@ -33,6 +33,9 @@ class User(MainDatabaseModel):
         cap = models.Capability.query().where('user', self.id).where('name', configuration.HOME_CAP_NAME).where('storage_path', home_path).where('write').get_one(cursor)
         if self.use_home:
             if cap is None:
+                for i, subcap in enumerate(models.Capability.query().where('user', self.id).where('name', configuration.HOME_CAP_NAME)):
+                    subcap.name = '%s_%d'%(subcap.name, i)
+                    subcap.persist(cursor, recurrent=False, commit=False)
                 cap = models.Capability()
                 cap.user = self
                 cap.storage_path = home_path

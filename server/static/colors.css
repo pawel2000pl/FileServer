@@ -198,12 +198,16 @@ input[type="checkbox"]:checked::after {
     border-style: solid;
 }
 
+button,
+input[type=submit],
+input {
+    cursor: pointer;
+}
 
 button,
 input[type=submit],
 input,
 textarea {
-    cursor: pointer;
     background-color: var(--color-1);
     border: 1.2px solid var(--color-1);
     border-radius: 8px;
@@ -228,6 +232,7 @@ textarea:disabled {
     backdrop-filter: blur(6px);
 }
 
+textarea,
 input,
 input[type=text],
 input[type=password] {
