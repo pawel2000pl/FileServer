@@ -1,11 +1,11 @@
 :root {
-    --color-0: rgb(180, 208, 255);
-    --color-1: rgba(51, 72, 96, 0.575);
-    --color-2: rgba(71, 95, 123, 0.575);
-    --color-3: rgba(82, 99, 134, 0.575);
-    --color-4: rgba(95, 120, 157, 0.575);
-    --color-5: rgba(105, 133, 186, 0.575);
-    --color-6: rgba(25, 36, 48, 0.575);
+    --color-0: rgb(225, 230, 255);    
+    --color-1: rgba(51, 72, 96, 0.375);
+    --color-2: rgba(71, 95, 123, 0.375);
+    --color-3: rgba(82, 99, 134, 0.375);
+    --color-4: rgba(95, 120, 157, 0.375);
+    --color-5: rgba(105, 133, 186, 0.375);
+    --color-6: rgba(25, 36, 48, 0.375);
 
     --color-1-no-op: rgb(51, 72, 96);
 }
@@ -41,7 +41,7 @@ dialog {
 .content-table tr th {
     border-style: none;
     backdrop-filter: blur(6px);
-
+    padding: 2px 8px;
 }
 
 .content-table th {
@@ -237,4 +237,13 @@ input,
 input[type=text],
 input[type=password] {
     cursor: text;
+}
+
+
+#notifications_panel {  
+    background-color: var(--color-4);
+    border-radius: 8px;
+    position: relative;  
+    padding: 8px;
+    backdrop-filter: blur(8px);
 }

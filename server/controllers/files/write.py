@@ -8,9 +8,11 @@ import configuration
 from time import time
 from html import escape
 from typing import Iterator
+from threading import Thread
 from models import Capability
 from libraries.file_view import FileView
 from libraries.filename import assert_filename
+from controllers.common import add_notification
 from libraries.storage import StorageEntry, UrlStorage
 
 
@@ -61,38 +63,46 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
 
 
     if flask.request.method == 'POST' and 'paste-data' in flask.request.form:
-        try:
-            data = json.loads(flask.request.form['paste-data'])
-            source_entry = UrlStorage(data['url_path'])
-            if data['operation'] == 'cut' and not source_entry.write: raise PermissionError()
-            for name in data['file_list']:
-                if not source_entry.entry_exists(name):
-                    raise FileNotFoundError()
-                if entry.entry_exists(name):
-                    raise FileExistsError()
+        paste_data_str = flask.request.form['paste-data']
+        user_id = flask.session.get('user_id', None)
+        def worker():
+            try:
+                data = json.loads(paste_data_str)
+                operation = data['operation']
+                source_entry = UrlStorage(data['url_path'])
+                add_notification(f'Started operation "{operation}" on files: "{source_entry.get_name()}/..." -> "{entry.get_name()}"/...', user_id)
+                if operation == 'cut' and not source_entry.write: raise PermissionError()
+                for name in data['file_list']:
+                    if not source_entry.entry_exists(name):
+                        raise FileNotFoundError()
+                    if entry.entry_exists(name):
+                        raise FileExistsError()
 
-            timestamp = time()
-            for name in data['file_list']:
-                if data['operation'] == 'cut':
-                    entry.move_entry(source_entry, name, name, timestamp)
-                elif data['operation'] == 'copy-links':
-                    entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options='LINK')
-                elif data['operation'] == 'copy':
-                    entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options='NONE')                
-                yield f'<!-- Entry "{escape(name)}" has been saved successfully -->'
+                timestamp = time()
+                for name in data['file_list']:
+                    if operation == 'cut':
+                        entry.move_entry(source_entry, name, name, timestamp)
+                    elif operation == 'copy-links':
+                        entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options='LINK')
+                    elif operation == 'copy':
+                        entry.add_entry(name, source_entry.goto(name).get_system_path(), timestamp, options='NONE')                
+                    yield f'<!-- Entry "{escape(name)}" has been saved successfully -->'
 
+                add_notification(f'Finished working with files: "{source_entry.get_name()}/..." -> "{entry.get_name()}/..."', user_id)
+            except FileExistsError:
+                add_notification("Cannot paste: at least one source file has the same name as an existsed file in the destination.", user_id)
+            except PermissionError:
+                add_notification("Cannot paste: you have no access for removing files from destination.", user_id)
+            except FileNotFoundError:
+                add_notification("Cannot paste: at least one source file does not exist.", user_id)
+            except shutil.Error:
+                add_notification("Cannot paste: maybe you tried to move a directory into itself.", user_id)
+            except:
+                add_notification("Cannot paste: invalid request.", user_id)
 
-        except FileExistsError:
-            yield '<script>alert("Cannot paste: at least one source file has the same name as an existsed file in the destination.");</script>'
-        except PermissionError:
-            yield '<script>alert("Cannot paste: you have no access for removing files from destination.");</script>'
-        except FileNotFoundError:
-            yield '<script>alert("Cannot paste: at least one source file does not exist.");</script>'
-        except shutil.Error:
-            yield '<script>alert("Cannot paste: maybe you tried to move a directory into itself.");</script>'
-        except:
-            yield '<script>alert("Cannot paste: invalid request.");</script>'
-
+        thread = Thread(target=worker)
+        thread.start()
+        thread.join(configuration.ASYNC_MIN_TIME)
 
     yield '''
         <span class="link-like-button" onclick="file_upload_dialog.showModal()">Upload</span>
@@ -143,11 +153,11 @@ def render_write(entry: StorageEntry) -> Iterator[str]:
             new_dir = entry_system_path + os.sep + new_name
             os.mkdir(new_dir)
         except FileExistsError:
-            yield '<script>alert("Cannot create a directory: there is already a file or a directory with the same name.");</script>'
+            add_notification("Cannot create a directory: there is already a file or a directory with the same name.", user_id)
         except PermissionError:
-            yield '<script>alert("Cannot create a directory: invalid name");</script>'
+            add_notification("Cannot create a directory: invalid name", user_id)
         except:
-            yield '<script>alert("Cannot create a directory: invalid request.");</script>'
+            add_notification("Cannot create a directory: invalid request.", user_id)
 
 
     if 'file-upload' in flask.request.form:

@@ -112,7 +112,6 @@ def userfile(path):
     return controllers.files.make_request(['userfile'] + path)
 
 
-
 @application.route('/tokenfile/<path:path>', methods=['GET', 'POST'])
 @response_stream.http_response
 def tokenfile(path):
@@ -121,6 +120,13 @@ def tokenfile(path):
     if not check_path(path): raise response_stream.HTTPError(400, 'Bad request: invalid path elements')
     return controllers.files.make_request(['tokenfile'] + path)
 
+
+@application.route('/clear_notifications', methods=['GET'])
+@response_stream.http_response
+@controllers.login.require_login
+def clear_notifications():
+    controllers.common.remove_user_notifications(int(flask.session.get('user_id', 0)))
+    return 'OK'
 
 
 @application.route('/users', methods=['GET', 'POST'])

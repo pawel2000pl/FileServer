@@ -52,17 +52,40 @@ a {
 }
 
 
-.filters-form-div form div {
+.notifications-div details {
+    position: relative;
+    left: 0px;
+    z-index: 10;
     display: inline-block;
-    margin: 3px;
+}
+
+#notifications_panel {
+    min-width: 300px;
+    min-height: 3em;
+    position: absolute;
+    right: 0px;
+    display: inline-block;  
+    z-index: 11;
 }
 
 
-.filters-form-div form input[type="number"] {
+.notifications-div summary {
+    min-width: 240px;
+    min-height: 1.2em;
+    cursor: pointer;
+}
+
+
+.notifications-div div span {
+    padding-right: 16px;
+}
+
+
+.notifications-div form input[type="number"] {
     width: 5em;
 }
 
-.filters-form-div form div span {
+.notifications-div form div span {
     margin-right: 5px;
 }
 

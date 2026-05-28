@@ -34,7 +34,7 @@ class User(MainDatabaseModel):
         if self.use_home:
             if cap is None:
                 for i, subcap in enumerate(models.Capability.query().where('user', self.id).where('name', configuration.HOME_CAP_NAME)):
-                    subcap.name = '%s_%d'%(subcap.name, i)
+                    subcap.name = '%s_%d'%(subcap.name, i+1)
                     subcap.persist(cursor, recurrent=False, commit=False)
                 cap = models.Capability()
                 cap.user = self

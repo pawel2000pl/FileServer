@@ -6,11 +6,12 @@ import models
 import shutil
 import configuration
 from html import escape
+from threading import Thread
 from urllib.parse import quote
 from libraries.file_view import FileView
 from libraries.storage import StorageEntry
 from typing import Iterator, Union, Optional
-from controllers.common import format_datetime, format_size
+from controllers.common import format_datetime, format_size, add_notification
 
 
 def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
@@ -36,12 +37,22 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
     deleting_mode = storage_entry.write and not renaming_mode and flask.request.method == 'POST' and 'delete-file-btn' in flask.request.form and 'confirm-delete' in flask.request.form
     rename_name = flask.request.form.get('file-name', '')
     new_name = flask.request.form.get('new-name', '')
+    user_id = flask.session.get('user_id', None)
 
     if renaming_mode and len(rename_name) and len(new_name) and storage_entry.entry_exists(rename_name):
         if storage_entry.entry_exists(new_name):
-            yield '<script>alert("Cannot change the name: the file with this name already exists.");</script>'
+            add_notification("Cannot change the name: the file with this name already exists.", user_id)            
         else:
-            storage_entry.rename_entry(rename_name, new_name, timestamp)
+            def worker():
+                storage_entry.rename_entry(rename_name, new_name, timestamp)
+                if configuration.TRIVIAL_BACKUPS:
+                    add_notification(f'Renaming finished: "{rename_name}" -> "{new_name}"', user_id)
+
+            if configuration.TRIVIAL_BACKUPS:
+                add_notification(f'Renaming started: "{rename_name}" -> "{new_name}"', user_id)
+            thread = Thread(target=worker)
+            thread.start()
+            thread.join(configuration.ASYNC_MIN_TIME)
 
     hide_write_html = '' if storage_entry.write else 'style="display:none;"'
 
@@ -63,16 +74,18 @@ def render_directory(storage_entry: StorageEntry) -> Iterator[str]:
     '''
 
     count = 0
+    user_id = flask.session.get('user_id', None)
+    files_to_delete = set(flask.request.form) if deleting_mode else set()
 
     for entry in storage_entry.scan_entries():
         type_str = ''
         name = entry.get_name()
         try:
-            if deleting_mode and 'file:'+name in flask.request.form:
+            if deleting_mode and 'file:'+name in files_to_delete:
                 storage_entry.remove_entry(name, timestamp)
                 continue
         except shutil.Error:
-            yield '<script>alert("Cannot delete some entries.");</script>'
+            add_notification(f'Cannot delete some entries: "{name}"', user_id)
             deleting_mode = False
         view = entry.get_file_view()
         if view.is_file(): type_str += 'F'
