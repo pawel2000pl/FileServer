@@ -160,23 +160,30 @@ def render_menu(user_id: Optional[int]) -> Iterable[str]:
         yield '''
         <span class="menu-header" onclick="
             menuVisibility[menuVisibilityMode] = !menuVisibility[menuVisibilityMode];
-            const currentVisibility = menuVisibility[menuVisibilityMode];
-            Array.from(document.getElementsByClassName('menu-section')).forEach((element) => {                
-                element.style.display = currentVisibility ? 'table' : 'none';
-            })
+            recalculateMenuVisibility();
             ">Menu</span>
         <script>
             var menuVisibility = { true: true, false: false };
             var menuVisibilityMode = null;
+            const recalculateMenuVisibility = () => {
+                const currentVisibility = menuVisibility[menuVisibilityMode];
+                Array.from(document.getElementsByClassName('menu-section')).forEach((element) => {                
+                    element.style.display = currentVisibility ? 'table' : 'none';
+                });
+                if (menuVisibilityMode) {
+                    main_container.style.gridTemplateColumns = currentVisibility ? '20% 1fr' : 'min-content 1fr';
+                    page_title.style.display = currentVisibility ? '' : 'none';
+                } else {
+                    main_container.style.gridTemplateColumns = '1fr';
+                    page_title.style.display = '';
+                }
+            };
             const resizeMenu = () => {
                 if (menuVisibilityMode === null) menuVisibilityMode = document.body.clientWidth >= 768;
                 else if (menuVisibilityMode && document.body.clientWidth < 768) menuVisibilityMode = false;
                 else if (!menuVisibilityMode && document.body.clientWidth >= 768) menuVisibilityMode = true;                
                 else return;
-                const currentVisibility = menuVisibility[menuVisibilityMode];
-                Array.from(document.getElementsByClassName('menu-section')).forEach((element) => {
-                    element.style.display = currentVisibility ? 'table' : 'none';
-                });
+                recalculateMenuVisibility();
             };
             window.addEventListener('load', resizeMenu);
             window.addEventListener('resize', resizeMenu);
@@ -253,12 +260,12 @@ def render_page(content_factory) -> Iterable[str]:
         <body>
     '''
 
-    yield '<div class="container">'
+    yield '<div id="main_container" class="container">'
 
     yield f'''
         <div class="cell logo-cell">
             <img src="{LOGO_SRC}" alt="logo"/>
-            <span>File server</span>
+            <span id="page_title">File server</span>
         </div>
         '''
 
